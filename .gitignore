@@ -1,0 +1,38 @@
+# Ignore local config overrides
+local_config.py
+
+# Checkpoints and model files
+*.ckpt
+*.pth
+*.pt
+*.safetensors
+
+# Logs and outputs
+lightning_logs/
+tb_logs/
+csv_logs/
+eval_fixed/
+image_logs/
+inference/
+Slurm_scripts/Slurm_outputs
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+.pytest_cache/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Data directories (adjust as needed)
+inference/
+image_logs/
+eval_fixed_all
