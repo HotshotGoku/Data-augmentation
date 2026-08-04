@@ -4,7 +4,7 @@ Uses shared resources from the original project via shared_resources_config
 """
 
 # Import config first to setup paths
-from shared_resources_config import CONTROL_SD15_CKPT, CLDM_V15_YAML
+from Data_augmentation.utils.shared_resources_config import CONTROL_SD15_CKPT, CLDM_V15_YAML
 
 import os, torch
 import pytorch_lightning as pl
@@ -14,7 +14,7 @@ from reptorep_dataset import MyDataset
 from cldm.logger_custom import ImageLogger
 from cldm.model import create_model, load_state_dict
 # from local_config import JSON_FILE_3DATASETS_100000
-from local_config import JSON_FILE_3DATASETS_FULL
+from Data_augmentation.utils.local_config import JSON_FILE_3DATASETS_FULL
 
 
 # Configs

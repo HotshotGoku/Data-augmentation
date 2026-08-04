@@ -36,3 +36,7 @@ __pycache__/
 inference/
 image_logs/
 eval_fixed_all
+
+
+# Test scripts extra for sanity checks
+extra/

@@ -8,7 +8,7 @@ import pipeline
 import Data_augmentation.utils.shared_resources_config as shared_resources_config
 from cldm.preprocess import preprocess_experimental_backgroundblack
 import argparse
-from Data_augmentation.utils.local_config import OUTPUT_DIR_REPTOREP,EXP_FOLDER_TEST, EXP_FOLDER_TEST_V3, EMRAH_EXP_FOLDER_TEST
+from Data_augmentation.utils.local_config import OUTPUT_DIR_REPTOREP, TEST_FOLDER_MULTIPLEXED_SENSING
 
 p = argparse.ArgumentParser()
 p.add_argument('--specific_folder', type=str, default='reptorep')
@@ -27,7 +27,7 @@ os.makedirs(OUTPUT_DIR, exist_ok=True)
 # ------------------------------
 
 
-INPUT_DIR      = [EXP_FOLDER_TEST, EXP_FOLDER_TEST_V3, EMRAH_EXP_FOLDER_TEST]  # test images folder
+INPUT_DIR      = [TEST_FOLDER_MULTIPLEXED_SENSING]  # test images folder
 
 
 
@@ -55,7 +55,8 @@ prefix_map = {}
 
 for INPUT_DIR in INPUT_DIR:
     for fp in sorted(glob.glob(os.path.join(INPUT_DIR, "*.TIF"))):
-        prefix = os.path.basename(fp).split("_")[0]
+        # files are of type Repx_Rowy_Columnz.TIF, so for prefix we need to combine all three parts
+        prefix = "_".join(os.path.basename(fp).split(".")[0].split("_")[:3])
         if prefix not in prefix_map:
             prefix_map[prefix] = fp
 
@@ -68,7 +69,11 @@ for prefix, fp in prefix_map.items():
     # img = cv2.cvtColor(cv2.imread(fp), cv2.COLOR_BGR2RGB)
 
     # process images with the simulation preprocessing step
-    img= preprocess_experimental_backgroundblack(fp)
+    # img= preprocess_experimental_backgroundblack(fp)  
+    img= cv2.imread(fp, cv2.IMREAD_COLOR)
+    # source = cv2.imread(source_path, cv2.IMREAD_COLOR)
+    img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+    img = cv2.resize(img, (256, 256))
 
     # run the shared pipeline
     outs = pipeline.process(img, **ARGS)

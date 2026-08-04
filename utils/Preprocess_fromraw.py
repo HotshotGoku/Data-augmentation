@@ -3,7 +3,7 @@
 import cv2
 import numpy as np
 import os
-from local_config import MUTANT_EXP_FOLDER
+from Data_augmentation.utils.local_config import MUTANT_EXP_FOLDER
 
 def crop_experimental(img):
     """Optimized experimental image rotation using OpenCV warpAffine. Takes raw experimental images with plate boundaries 
