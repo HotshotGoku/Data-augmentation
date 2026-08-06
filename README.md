@@ -4,11 +4,12 @@ This is a spinoff project from the main Physics_constrained_DL_pattern_predictio
 
 ## Shared Resources
 
-This project uses shared resources (checkpoint files, datasets) from the original project without duplicating them. 
+This project uses shared resources (checkpoint files, datasets) from the original project without duplicating them.
 
 The configuration for shared resources is in `shared_resources_config.py`.
 
 ### Key Shared Resources:
+
 - **control_sd15_ini.ckpt**: Located in original project's sim_to_exp_diffusion/controlnet_essential/
 - **v1-5-pruned.ckpt**: Located in original project's sim_to_exp_diffusion/controlnet_essential/models/
 - **Trained models**: /hpc/group/youlab/ks723/miniconda3/saved_models/trained/
@@ -40,14 +41,6 @@ If you prefer independence, copy the `cldm/` directory and other modules you nee
 
 ### Example Files
 
-I've created modified versions of the training scripts:
-- `simtoexp_train.py` - Uses shared checkpoints via config
-- `simtoexp_dataset.py` - Uses modules from original project
-
-These demonstrate how to use shared resources without duplication.
-
-### Verify Paths
-
 To check that all shared resources are accessible:
 
 ```bash
@@ -57,31 +50,32 @@ python shared_resources_config.py
 ## Getting Started
 
 1. Use the existing conda environment:
+
    ```bash
    conda activate pytorch_PA_patternprediction
    ```
-
 2. Set up your local configuration:
+
    ```bash
    cd /hpc/dctrl/ks723/Data_augmentation
-   
+
    # Option 1: Use environment variable (recommended for GitHub)
    export PHYSICS_DL_PROJECT_PATH=/your/path/to/Physics_constrained_DL_pattern_prediction
-   
+
    # Option 2: Edit shared_resources_config.py directly
    # (but this will be committed to git)
    ```
-
 3. Verify shared resources:
+
    ```bash
    python shared_resources_config.py
    ```
-
 4. Start developing your augmentation scripts!
 
 ### For GitHub
 
 The project is GitHub-ready:
+
 - `.gitignore` excludes checkpoints and local configs
 - `example_config.py` shows configuration structure
 - `shared_resources_config.py` uses environment variable `PHYSICS_DL_PROJECT_PATH`

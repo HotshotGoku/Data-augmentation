@@ -1,5 +1,3 @@
-# Ignore local config overrides
-local_config.py
 
 # Checkpoints and model files
 *.ckpt
