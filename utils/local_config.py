@@ -51,6 +51,13 @@ EMRAH_EXP_FOLDER_AUG = '/hpc/group/youlab/ks723/storage/Exp_images/EmrahPaKp_dat
 EMRAH_EXP_FOLDER_PRE_TEST=  '/hpc/group/youlab/ks723/storage/Exp_images/EmrahPaKp_dataset_renamed/Test_set'
 EMRAH_EXP_FOLDER_TEST = '/hpc/group/youlab/ks723/storage/Exp_images/EmrahPaKp_dataset_renamed/Test_set_preprocess_noaug'
 
+# Kristen's data 
+
+KRISTEN_EXP_FOLDER_2SP= '/hpc/group/youlab/ks723/storage/Exp_images/KL_automatedcrops_2species'
+KRISTEN_EXP_FOLDER_2SP_FILTERED= '/hpc/group/youlab/ks723/storage/Exp_images/KL_automatedcrops_2species_filtered' 
+KRISTEN_EXP_FOLDER_2SP_FILTERED_RENAMED= '/hpc/group/youlab/ks723/storage/Exp_images/KL_automatedcrops_2species_filtered_renamed'
+KRISTEN_EXP_FOLDER_2SP_FINALAUG= '/hpc/group/youlab/ks723/storage/Exp_images/KL_automatedcrops_2species_filtered_renamed_AUG100'
+
 # differnt prompt json file 
 
 JSON_FILE_3DATASETS_100000= os.path.join(BASE_FOLDER, f"prompt_experiments_3datasets_permutations_balanced_100000.json")
@@ -60,3 +67,4 @@ OUTPUT_DIR_REPTOREP_SAVED= '/hpc/dctrl/ks723/Data_augmentation/inference/v202629
 
 TEST_FOLDER_MULTIPLEXED_SENSING= '/hpc/group/youlab/ks723/storage/Exp_images/Multiplexed_patterning/20260717_testset'
 INFERENCE_FOLDER_MULTIPLEXED_SENSING= '/hpc/dctrl/ks723/Data_augmentation/inference/v2026724_1322_REPTOREP'
+
