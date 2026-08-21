@@ -5,7 +5,7 @@ Similar to the Seed_DataAugmentation.py file, just example do not run this block
 import cv2
 import numpy as np
 import os
-from local_config import MUTANT_EXP_FOLDER
+from utils.local_config import MUTANT_EXP_FOLDER
 
 
 def crop_and_rotate_experimental(img, angle):

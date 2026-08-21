@@ -1,8 +1,8 @@
 # pipeline.py
 
-from local_config import CKPT_PATH_V4
-import shared_resources_config
-from shared_resources_config import CONTROL_SD15_CKPT, CLDM_V15_YAML, CONFIG_RESOURCES
+from utils.local_config import CKPT_PATH_V4
+from utils import shared_resources_config
+from utils.shared_resources_config import CONTROL_SD15_CKPT, CLDM_V15_YAML, CONFIG_RESOURCES
 
 import os
 import random 

@@ -4,7 +4,7 @@ Uses modules from the original project and custom config
 """
 
 # Import config first to setup paths
-import shared_resources_config
+from utils import shared_resources_config 
 
 import json
 import cv2
