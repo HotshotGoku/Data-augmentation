@@ -20,11 +20,11 @@ CKPT_PATH= '/hpc/dctrl/ks723/Data_augmentation/lightning_logs/version_41457801/c
 # CKPT_PATH_V2 = '/hpc/dctrl/ks723/Data_augmentation/lightning_logs/version_42248443/checkpoints/epoch=2-step=81299.ckpt'
 CKPT_PATH_V2= '/hpc/dctrl/ks723/Data_augmentation/lightning_logs/version_42248443/checkpoints/epoch=4-step=135499.ckpt'
 CKPT_PATH_V3= '/hpc/dctrl/ks723/Data_augmentation/lightning_logs/version_42603802/checkpoints/epoch=4-step=124999.ckpt'
-CKPT_PATH_V4 = '/hpc/dctrl/ks723/Data_augmentation/lightning_logs/version_42875182/checkpoints/epoch=4-step=375749.ckpt' # trained on full 300k images KS, Nan(KL+DL), Emrah data 
+CKPT_PATH_V4 = os.environ.get("FT_EVAL_CKPT") or '/hpc/group/youlab/sa603/code/Data_augmentation/lightning_logs/version_52034860/checkpoints/epoch=4-step=375749.ckpt' # sa603 full-data model (job 52034860). Set env FT_EVAL_CKPT to override for eval sweeps. pipeline.py loads THIS var.
 
 # for saving 
 
-OUTPUT_DIR_REPTOREP = f"/hpc/dctrl/ks723/Data_augmentation/inference/v{currentYear}{currentMonth}{currentDay}_{currentHour}{currentMinute}_REPTOREP"
+OUTPUT_DIR_REPTOREP = f"/hpc/group/youlab/sa603/code/Data_augmentation/inference/v{currentYear}{currentMonth}{currentDay}_{currentHour}{currentMinute}_REPTOREP"
 EXP_FOLDER_TEST= "/hpc/group/youlab/ks723/storage/Exp_images/Final_Test_set_preprocess_v3"
 
 # for Nan's mutant library for the data collected by Dongheon and Kristen
