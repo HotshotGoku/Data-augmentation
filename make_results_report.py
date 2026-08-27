@@ -61,7 +61,7 @@ def stack(rows):
 srcmap = prefix_files(TEST2SP)
 prefixes = sorted(srcmap.keys())[:6]
 ft_tags = [("baseline_fulldata", "baseline"), ("none_lr5e-6_epoch=3", "ft none e3"),
-           ("shallow_lr5e-6_epoch=3", "ft shallow e3")]
+           ("shallowsweep_lr5e-6_epoch=3", "ft shallow e3 (best)")]
 rows = []
 for pfx in prefixes:
     files = srcmap[pfx]
