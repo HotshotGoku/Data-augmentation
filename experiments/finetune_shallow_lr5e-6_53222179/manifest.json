@@ -1,0 +1,21 @@
+{
+  "run_id": "finetune_shallow_lr5e-6_53222179",
+  "kind": "finetune",
+  "tag": "shallow_lr5e-6",
+  "slurm_job_id": "53222179",
+  "host": "dcc-youlab-gpu-ferc-s-aa25-19",
+  "git_sha": "a04ef66",
+  "timestamp": "2026-08-25T09:25:28",
+  "lr": 5e-06,
+  "epochs": 4,
+  "batch_size": 4,
+  "seed": 42,
+  "freeze": "shallow",
+  "frozen_params": 44754320,
+  "trainable_params": 316524800,
+  "resume_ckpt": "/hpc/group/youlab/sa603/code/Data_augmentation/lightning_logs/version_52034860/checkpoints/epoch=4-step=375749.ckpt",
+  "train_json": "/hpc/group/youlab/sa603/data/finetune_2sp/train_2sp.json",
+  "save_top_k": -1,
+  "sd_locked": true,
+  "only_mid_control": false
+}

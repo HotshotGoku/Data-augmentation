@@ -1,0 +1,16 @@
+{
+  "run_id": "simexp_downstream_real_N50_53584154",
+  "kind": "simexp_downstream",
+  "tag": "real_N50",
+  "slurm_job_id": "53584154",
+  "host": "dcc-youlab-gpu-ferc-s-aa25-13",
+  "git_sha": "4257109",
+  "timestamp": "2026-08-27T08:18:45",
+  "json": "/hpc/group/youlab/sa603/data/downstream_simexp/train_real.json",
+  "n_pairs": 5000,
+  "epochs": 5,
+  "seed": 42,
+  "lr": 1e-05,
+  "resume": "control_sd15_ini",
+  "save_top_k": 1
+}

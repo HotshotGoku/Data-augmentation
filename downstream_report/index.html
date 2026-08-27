@@ -1,0 +1,11 @@
+<html><head><meta charset='utf-8'></head>
+<body style='font-family:sans-serif;background:#111;color:#eee;max-width:1300px;margin:auto'>
+<h1>Downstream utility: sim&rarr;exp, real-only (A) vs real+synthetic (B)</h1>
+<p>Held-out real Exp_testset. SSIM higher = better; LPIPS lower = better. B&minus;A: SSIM -0.1966, LPIPS +0.1123 (LPIPS negative = synthetic helped).</p>
+<table border=1 cellpadding=6 style='border-collapse:collapse'>
+<tr><th>condition</th><th>SSIM &uarr;</th><th>LPIPS &darr;</th><th>n</th></tr>
+<tr><td>A &mdash; real_N50 (real-only)</td><td>0.3920975890325382</td><td>0.3775131388877829</td><td>96</td></tr>
+<tr><td>B &mdash; realsynth_N50 (real+synthetic)</td><td>0.1954968727081764</td><td>0.4898516669248541</td><td>96</td></tr>
+</table>
+<h2>Predictions (sim input | real exp | A | B)</h2><img src='predictions.png' style='max-width:100%'>
+</body></html>

@@ -1,0 +1,16 @@
+{
+  "run_id": "simexp_downstream_smoke_53572568",
+  "kind": "simexp_downstream",
+  "tag": "smoke",
+  "slurm_job_id": "53572568",
+  "host": "dcc-youlab-gpu-ferc-s-aa25-10",
+  "git_sha": "4257109",
+  "timestamp": "2026-08-27T07:33:31",
+  "json": "/hpc/group/youlab/sa603/data/downstream_simexp_smoke/train_real_plus_synth.json",
+  "n_pairs": 204,
+  "epochs": 1,
+  "seed": 42,
+  "lr": 1e-05,
+  "resume": "control_sd15_ini",
+  "save_top_k": 1
+}

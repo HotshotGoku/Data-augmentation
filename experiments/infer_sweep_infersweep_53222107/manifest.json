@@ -1,0 +1,31 @@
+{
+  "run_id": "infer_sweep_infersweep_53222107",
+  "kind": "infer_sweep",
+  "tag": "infersweep",
+  "slurm_job_id": "53222107",
+  "host": "dcc-youlab-gpu-ferc-s-aa25-10",
+  "git_sha": "a04ef66",
+  "timestamp": "2026-08-25T09:21:32",
+  "scales": [
+    9.0,
+    12.0,
+    15.1
+  ],
+  "strengths": [
+    1.0,
+    1.5,
+    2.0
+  ],
+  "targets": "OOD:/hpc/group/youlab/sa603/data/finetune_2sp/test_2sp,IND:/hpc/group/youlab/ks723/storage/Exp_images/Final_Test_set_preprocess_v3:40",
+  "out_root": "/hpc/group/youlab/sa603/code/Data_augmentation/infer_sweep_out",
+  "ckpt": "CKPT_PATH_V4(default sa603 full-data model)",
+  "prompt": "",
+  "a_prompt": "",
+  "n_prompt": "longbody, lowres, bad anatomy, cropped, worst quality, low quality",
+  "num_samples": 2,
+  "image_resolution": 256,
+  "ddim_steps": 50,
+  "guess_mode": false,
+  "seed": 729397049,
+  "eta": 0.0
+}

@@ -1,0 +1,7 @@
+{
+  "tag": "realsynth_N50",
+  "ckpt": "/hpc/group/youlab/sa603/code/Data_augmentation/downstream_runs/realsynth_N50/lightning_logs/version_53584156/checkpoints/epoch=4-step=7499.ckpt",
+  "n": 96,
+  "SSIM_mean": 0.1954968727081764,
+  "LPIPS_mean": 0.4898516669248541
+}

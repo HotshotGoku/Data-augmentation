@@ -1,0 +1,13 @@
+timestamp	run_id	kind	tag	slurm_job_id	git_sha
+2026-08-25T09:21:32	infer_sweep_infersweep_53222107	infer_sweep	infersweep	53222107	a04ef66
+2026-08-25T09:25:28	finetune_shallow_lr5e-6_53222179	finetune	shallow_lr5e-6	53222179	a04ef66
+2026-08-25T09:37:12	finetune_shallow_lr5e-6_53222313	finetune	shallow_lr5e-6	53222313	a04ef66
+2026-08-25T09:41:35	finetune_none_lr5e-6_53222645	finetune	none_lr5e-6	53222645	a04ef66
+2026-08-26T15:19:21	finetune_shallowsweep_lr1e-5_53408287	finetune	shallowsweep_lr1e-5	53408287	873c837
+2026-08-26T15:19:21	finetune_shallowsweep_lr1e-6_53408285	finetune	shallowsweep_lr1e-6	53408285	873c837
+2026-08-26T15:19:22	finetune_shallowsweep_lr5e-6_53408286	finetune	shallowsweep_lr5e-6	53408286	873c837
+2026-08-27T07:33:31	simexp_downstream_smoke_53572568	simexp_downstream	smoke	53572568	4257109
+2026-08-27T08:17:17	simexp_downstream_realsynth_N50_53584156	simexp_downstream	realsynth_N50	53584156	4257109
+2026-08-27T08:18:45	simexp_downstream_real_N50_53584154	simexp_downstream	real_N50	53584154	4257109
+2026-08-27T09:42:46	simexp_eval_realsynth_N50_53597348	simexp_eval	realsynth_N50	53597348	4257109
+2026-08-27T09:42:46	simexp_eval_real_N50_53597347	simexp_eval	real_N50	53597347	4257109

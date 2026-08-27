@@ -1,0 +1,13 @@
+{
+  "run_id": "simexp_eval_real_N50_53597347",
+  "kind": "simexp_eval",
+  "tag": "real_N50",
+  "slurm_job_id": "53597347",
+  "host": "dcc-youlab-gpu-ferc-s-aa25-20",
+  "git_sha": "4257109",
+  "timestamp": "2026-08-27T09:42:46",
+  "ckpt": "/hpc/group/youlab/sa603/code/Data_augmentation/downstream_runs/real_N50/lightning_logs/version_53584154/checkpoints/epoch=4-step=6249.ckpt",
+  "n": 96,
+  "SSIM_mean": 0.3920975890325382,
+  "LPIPS_mean": 0.3775131388877829
+}
