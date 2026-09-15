@@ -7,14 +7,16 @@ Data-scarce regime; compares training-set composition:
   MODE=classical  -> K real + N_PER rotated/flipped copies per source (matched count)
   MODE=augmenter  -> K real + N_PER fine-tuned-augmenter synth per source (matched count)
 All arms share identical training transforms. Eval on held-out REAL test reps {3,7,12}; model
-selection on val reps {2,6,11}. Appends one row to RESULTS_TSV.
+selection on val reps {2,6,11} PER FRAMING (classification metrics from the best-val-joint epoch,
+regression metrics from the best-val-R2 epoch). Appends one row to RESULTS_TSV.
 
-Env: K (1|2|3|all), MODE, SEED, N_PER [8], EPOCHS [40], RESULTS_TSV, SYNTH_DIR, LABELS. DCC GPU."""
+Env: K (1|2|3|all), MODE, SEED, N_PER [8], EPOCHS [40], BACKBONE [resnet18|resnet50],
+     REG_WEIGHT [3.0], RESULTS_TSV, SYNTH_DIR, LABELS. DCC GPU."""
 import os, glob, re, json, random, csv
 import numpy as np, cv2, torch, torch.nn as nn
 from torch.utils.data import Dataset, DataLoader
 from torchvision import transforms
-from torchvision.models import resnet18, ResNet18_Weights
+from torchvision.models import resnet18, ResNet18_Weights, resnet50, ResNet50_Weights
 
 REALS = "/hpc/group/youlab/sa603/data/multiplexed_eval/reals"
 SYNTH = os.environ.get("SYNTH_DIR", "/hpc/group/youlab/sa603/data/multiplexed_eval/synth_ft")
@@ -26,6 +28,8 @@ MODE_TAG = os.environ.get("MODE_TAG", MODE)   # label written to results (lets u
 SEED = int(os.environ.get("SEED", "0"))
 N_PER = int(os.environ.get("N_PER", "8"))
 EPOCHS = int(os.environ.get("EPOCHS", "40"))
+BACKBONE = os.environ.get("BACKBONE", "resnet18")
+REG_WEIGHT = float(os.environ.get("REG_WEIGHT", "3.0"))
 DEV = "cuda"
 SRC_REPS = [8, 9, 10]                # present in all 70 conditions -> balanced K in {1,2,3}
 ALL_TRAIN = [1, 4, 5, 8, 9, 10]
@@ -100,13 +104,17 @@ tel = DataLoader(DS(test_items, EVAL_TF), batch_size=64, num_workers=4)
 class Decoder(nn.Module):
     def __init__(self):
         super().__init__()
+        if BACKBONE == "resnet50":
+            ctor, weights, feat = resnet50, ResNet50_Weights.IMAGENET1K_V2, 2048
+        else:
+            ctor, weights, feat = resnet18, ResNet18_Weights.IMAGENET1K_V1, 512
         try:
-            self.b = resnet18(weights=ResNet18_Weights.IMAGENET1K_V1)
+            self.b = ctor(weights=weights)
         except Exception as e:
             print("[warn] pretrained weights unavailable, random init:", e, flush=True)
-            self.b = resnet18(weights=None)
+            self.b = ctor(weights=None)
         self.b.fc = nn.Identity()
-        self.row, self.col, self.reg = nn.Linear(512, 10), nn.Linear(512, 7), nn.Linear(512, 2)
+        self.row, self.col, self.reg = nn.Linear(feat, 10), nn.Linear(feat, 7), nn.Linear(feat, 2)
     def forward(self, x):
         f = self.b(x); return self.row(f), self.col(f), self.reg(f)
 
@@ -132,22 +140,28 @@ def evaluate(loader):
     return {"row": rc / n, "col": cc / n, "joint": jc / n,
             "atc_mae": mae[0], "iptg_mae": mae[1], "atc_r2": r2[0], "iptg_r2": r2[1]}
 
-best_val, best = -1.0, None
+# Per-framing model selection: classification snapshot at best val joint-acc; regression snapshot at
+# best val mean-R2. Avoids penalizing the regression readout with a classification-chosen epoch.
+best_valj, best_cls = -1.0, None
+best_valr, best_reg = -1e9, None
 for ep in range(EPOCHS):
     net.train()
     for x, r, c, y in tl:
         x, r, c, y = x.to(DEV), r.to(DEV), c.to(DEV), y.to(DEV)
         opt.zero_grad()
         pr, pc, pg = net(x)
-        (ce(pr, r) + ce(pc, c) + 3.0 * mse(pg, y)).backward()
+        (ce(pr, r) + ce(pc, c) + REG_WEIGHT * mse(pg, y)).backward()
         opt.step()
     sched.step()
-    vj = evaluate(vl)["joint"]
-    if vj > best_val:
-        best_val, best = vj, evaluate(tel)
-print(f"[done] mode={MODE_TAG} K={K} seed={SEED} n_train={len(train_items)} | "
-      f"cls row/col/joint={best['row']:.3f}/{best['col']:.3f}/{best['joint']:.3f} | "
-      f"reg MAE aTc/IPTG={best['atc_mae']:.3f}/{best['iptg_mae']:.3f} R2={best['atc_r2']:.3f}/{best['iptg_r2']:.3f}", flush=True)
+    ve, te = evaluate(vl), evaluate(tel)
+    if ve["joint"] > best_valj:
+        best_valj, best_cls = ve["joint"], te
+    vr = (ve["atc_r2"] + ve["iptg_r2"]) / 2.0
+    if vr > best_valr:
+        best_valr, best_reg = vr, te
+print(f"[done] backbone={BACKBONE} mode={MODE_TAG} K={K} seed={SEED} n_train={len(train_items)} | "
+      f"cls row/col/joint={best_cls['row']:.3f}/{best_cls['col']:.3f}/{best_cls['joint']:.3f} | "
+      f"reg MAE aTc/IPTG={best_reg['atc_mae']:.3f}/{best_reg['iptg_mae']:.3f} R2={best_reg['atc_r2']:.3f}/{best_reg['iptg_r2']:.3f}", flush=True)
 
 os.makedirs(os.path.dirname(RESULTS), exist_ok=True)
 new = not os.path.exists(RESULTS)
@@ -155,7 +169,7 @@ with open(RESULTS, "a", newline="") as f:
     w = csv.writer(f, delimiter="\t")
     if new:
         w.writerow(["mode", "K", "seed", "n_train", "row_acc", "col_acc", "joint_acc",
-                    "atc_mae", "iptg_mae", "atc_r2", "iptg_r2", "best_val_joint"])
-    w.writerow([MODE_TAG, K, SEED, len(train_items), f"{best['row']:.4f}", f"{best['col']:.4f}", f"{best['joint']:.4f}",
-                f"{best['atc_mae']:.4f}", f"{best['iptg_mae']:.4f}", f"{best['atc_r2']:.4f}", f"{best['iptg_r2']:.4f}",
-                f"{best_val:.4f}"])
+                    "atc_mae", "iptg_mae", "atc_r2", "iptg_r2", "best_val_joint", "best_val_r2"])
+    w.writerow([MODE_TAG, K, SEED, len(train_items), f"{best_cls['row']:.4f}", f"{best_cls['col']:.4f}", f"{best_cls['joint']:.4f}",
+                f"{best_reg['atc_mae']:.4f}", f"{best_reg['iptg_mae']:.4f}", f"{best_reg['atc_r2']:.4f}", f"{best_reg['iptg_r2']:.4f}",
+                f"{best_valj:.4f}", f"{best_valr:.4f}"])

@@ -69,15 +69,18 @@ of the generalist so it is unseen by BOTH base and generalist -> a clean few-sho
 ## 4. Datasets: train / held-out test counts
 Held-out = whole conditions/strains kept OUT of pair-building (zero leakage). CMMD and realism are
 evaluated on these held-out reals.
-| dataset | train pairs | test sources | test reals | notes |
-|---|---|---|---|---|
-| pakp (EmrahPaKp) | 1,762 | 18 | 68 | |
-| kl2 (Kristen 2sp) | 860 | 5 | 36 | |
-| ff (Final_folder) | 410 | 28 | 64 | |
-| nlev (NL_evolution) | 432 | 12 | 36 | |
-| selx (Selected_Exps) | 326 | 24 | 48 | |
-| mplex (multiplexed) | 1,932 | 70 | 417 (val+test reps) | reps: train {1,4,5,8,9,10}, val {2,6,11}, test {3,7,12} |
-| rattray | 720 | 13 | 48 | 64 train strains, 13 held-out strains; unseen by base+generalist |
+| dataset | train images | train pairs | test sources | test reals | notes |
+|---|---|---|---|---|---|
+| pakp (EmrahPaKp) | 486 | 1,762 | 18 | 68 | |
+| kl2 (Kristen 2sp) | 184 | 860 | 5 | 36 | |
+| ff (Final_folder) | 402 | 410 | 28 | 64 | |
+| nlev (NL_evolution) | 252 | 432 | 12 | 36 | |
+| selx (Selected_Exps) | 358 | 326 | 24 | 48 | |
+| mplex (multiplexed) | 403 | 1,932 | 70 | 417 | train reps {1,4,5,8,9,10}=403 imgs; val+test reps=417 |
+| rattray | 248 | 720 | 13 | 48 | 64 train strains, 13 held-out strains; unseen by base+generalist |
+
+"train images" = unique real images; "train pairs" = source-to-target replicate combinations built
+from them (more than images when replicate-rich, e.g. pakp; fewer when replicate-sparse, e.g. selx).
 
 Held-out split rule: ~15% of conditions per domain (`HOLDOUT_EVERY=7` in `build_generalist_pairs.py`);
 Rattray by whole strain.

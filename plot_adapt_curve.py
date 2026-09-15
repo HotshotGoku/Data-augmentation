@@ -1,9 +1,9 @@
 """Adaptation data-efficiency curve (Rattray): realism vs #training pairs, base vs generalist, error bars."""
-import csv, collections
+import os, csv, collections
 import numpy as np, matplotlib; matplotlib.use("Agg")
 import matplotlib.pyplot as plt
-T = "/hpc/group/youlab/sa603/code/Data_augmentation/adapt_curve_out/curve_rattray.tsv"
-OUT = "/hpc/group/youlab/sa603/code/Data_augmentation/model_results/fig_adapt_curve_rattray.png"
+T = os.environ.get("ADAPT_TSV", "/hpc/group/youlab/sa603/code/Data_augmentation/adapt_curve_out/curve_rattray.tsv")
+OUT = os.environ.get("ADAPT_OUT", "/hpc/group/youlab/sa603/code/Data_augmentation/model_results/fig_adapt_curve_rattray.png")
 BLUE, CORAL, GREEN, GRAY, TXT = "#7DD3FC", "#FCA5A5", "#86EFAC", "#9AA0A6", "#E9EAEC"
 plt.rcParams.update({"text.color": TXT, "axes.labelcolor": TXT, "xtick.color": TXT,
                      "ytick.color": TXT, "axes.edgecolor": "#2A2D34", "font.size": 12, "font.family": "DejaVu Sans"})
