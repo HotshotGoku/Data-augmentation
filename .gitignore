@@ -38,3 +38,32 @@ eval_fixed_all
 
 # Test scripts extra for sanity checks
 extra/
+
+# --- added 2026-09-15: keep large data + generated images out; commit small artifacts via git add -f ---
+data/
+slurm_logs/
+**/gen/
+**/pred/
+model_results/
+eval_metrics_results/
+eval_metrics_results_ood/
+downstream_eval/
+downstream_multiplexed_out/
+generalist_eval_out/
+multiplexed_ft_eval_out/
+multiplexed_eval_out/
+mplex_warmstart_eval_out/
+rattray_knob_sweep/
+rattray_sweep_eval/
+sweep_eval_2sp/
+infer_sweep_out/
+flux_smoke_out/
+optuna_rattray/
+adapt_curve_out/
+experiments/finetune_*/
+# decks and slide builders (deliverables, not pipeline)
+*.pptx
+build_oneslide.js
+build_update_deck.js
+build_update2_slide.js
+build_kinshuk_metrics_slide.js

@@ -33,6 +33,20 @@ from Data_augmentation.utils.local_config import (
     EXP_FOLDER_TEST, EXP_FOLDER_TEST_V3, EMRAH_EXP_FOLDER_TEST, OUTPUT_DIR_REPTOREP,
 )
 
+# --- new metrics v2 (additive; degrade gracefully if a dep is missing) ---
+try:
+    import cmmd as _cmmd
+    _HAS_CMMD = _cmmd.available()
+except Exception as _e:  # pragma: no cover
+    _HAS_CMMD = False
+    print(f"[eval] CMMD unavailable ({_e}); skipping.")
+try:
+    from persample import calculate_ssim_batch, calculate_lpips_score_batch, calculate_orb_similarity_batch
+    _HAS_PS = True
+except Exception as _e:  # pragma: no cover
+    _HAS_PS = False
+    print(f"[eval] per-sample SSIM/LPIPS-VGG/ORB unavailable ({_e}); skipping.")
+
 RES = 256
 DEFAULT_REAL = [("FINAL", EXP_FOLDER_TEST), ("KUIZHU", EXP_FOLDER_TEST_V3), ("EMRAH", EMRAH_EXP_FOLDER_TEST)]
 MAX_REAL_PAIRS = 6   # cap real-vs-real pairs per prefix (bounds compute when a condition has many replicates)
@@ -54,6 +68,10 @@ def load_real_rgb(path):
 
 def to_t(img_rgb, device):
     return (torch.from_numpy(img_rgb).float().permute(2, 0, 1) / 127.5 - 1.0).unsqueeze(0).to(device)
+
+
+def to_t01(img_rgb, device):  # [1,C,H,W] in [0,1] for Kinshuk's per-sample functions
+    return (torch.from_numpy(img_rgb).float().permute(2, 0, 1) / 255.0).unsqueeze(0).to(device)
 
 
 def agg(vals):
@@ -129,20 +147,28 @@ def main():
     fid_by_tag = {t: fid_of(rp_by_tag[t], gp_by_tag[t], args.out, device) for t in tags}
     print(f"FID overall: {fid_overall} ; by tag: {fid_by_tag}")
 
-    # ---- LPIPS: diversity, realism (vs sibling / source), baseline real-vs-real ----
+    # ---- LPIPS(alex): diversity, realism (sibling/source), baseline; + nearest-neighbor per-sample; + CMMD ----
     import lpips
     loss_fn = lpips.LPIPS(net="alex").to(device)
-    buckets = {t: {"div": [], "sib": [], "src": [], "base": []} for t in tags}
-    rows = []
+    BKEYS = ["div", "sib", "src", "base", "nn_alex", "nn_vgg", "nn_ssim", "nn_orb", "base_nn", "auth", "copy"]
+    buckets = {t: {k: [] for k in BKEYS} for t in tags}
+    gen_rgb_by_tag = {t: [] for t in tags}
+    real_rgb_by_tag = {t: [] for t in tags}
+    cmmd_by_prefix = {}
+    rows, img_rows = [], []
     with torch.no_grad():
         for pref, gps in gen_by_prefix.items():
             t = tag_by_prefix.get(pref)
             if t is None:
                 continue
-            gts = [to_t(load_gen_rgb(p), device) for p in gps]
+            gimgs = [load_gen_rgb(p) for p in gps]
+            gts = [to_t(im, device) for im in gimgs]
             reals = real_by_prefix.get(pref, [])
-            rimgs = [load_real_rgb(fp) for fp in reals]
-            rts = [to_t(im, device) for im in rimgs if im is not None]
+            valid = [(fp, im) for fp, im in ((fp, load_real_rgb(fp)) for fp in reals) if im is not None]
+            real_paths_v = [fp for fp, _ in valid]
+            rimgs = [im for _, im in valid]
+            rts = [to_t(im, device) for im in rimgs]
+
             div = [loss_fn(gts[a], gts[b]).item() for a, b in itertools.combinations(range(len(gts)), 2)]
             src = [loss_fn(g, rts[0]).item() for g in gts] if rts else []
             sib = [loss_fn(g, r).item() for g in gts for r in rts[1:]]
@@ -150,32 +176,94 @@ def main():
                     for a, b in itertools.combinations(range(min(len(rts), 4)), 2)][:MAX_REAL_PAIRS]
             for k, v in (("div", div), ("sib", sib), ("src", src), ("base", base)):
                 buckets[t][k] += v
-            rows.append([pref, t, len(gps), len(reals),
-                         *[round(np.mean(x), 4) if x else "" for x in (div, sib, src, base)]])
 
-    def summ(bkeys):
-        return {"FID": bkeys[0], "diversity": agg(bkeys[1]["div"]),
-                "realism_vs_sibling": agg(bkeys[1]["sib"]), "realism_vs_source": agg(bkeys[1]["src"]),
-                "baseline_real_vs_real": agg(bkeys[1]["base"])}
-    allb = {"div": [], "sib": [], "src": [], "base": []}
+            # pool RGB for CMMD (distribution metric); per-prefix CMMD is diagnostic (small n)
+            gen_rgb_by_tag[t] += gimgs
+            real_rgb_by_tag[t] += rimgs
+            if _HAS_CMMD:
+                cmmd_by_prefix[pref] = _cmmd.cmmd_of(rimgs, gimgs, device)
+
+            # per-sample: match each gen to its NEAREST real sibling (alex LPIPS), then Kinshuk's SSIM/LPIPS-VGG/ORB
+            nn_alex, nn_vgg, nn_ssim, nn_orb, base_nn, auth, copies = [], [], [], [], [], [], []
+            if rts:
+                D = np.array([[loss_fn(g, r).item() for r in rts] for g in gts])  # [G, R]
+                nn_idx = D.argmin(axis=1)
+                nn_alex = D.min(axis=1).tolist()
+                if len(rts) >= 2:  # nearest real-vs-real floor: each real -> nearest OTHER real
+                    DR = np.array([[loss_fn(rts[a], rts[b]).item() if a != b else np.inf
+                                    for b in range(len(rts))] for a in range(len(rts))])
+                    base_nn = DR.min(axis=1).tolist()
+                if _HAS_PS:
+                    gb = torch.cat([to_t01(im, device) for im in gimgs], 0)
+                    nb = torch.cat([to_t01(rimgs[int(i)], device) for i in nn_idx], 0)
+                    nn_ssim = calculate_ssim_batch(gb, nb).tolist()
+                    nn_vgg = calculate_lpips_score_batch(gb, nb).tolist()
+                    nn_orb = calculate_orb_similarity_batch(gb, nb).tolist()
+                fmean = float(np.mean(base_nn)) if base_nn else None
+                fmin = float(np.min(base_nn)) if base_nn else None
+                auth = [a - fmean for a in nn_alex] if fmean is not None else []
+                copies = [1.0 if (fmin is not None and a < fmin) else 0.0 for a in nn_alex]
+                for k, v in (("nn_alex", nn_alex), ("nn_vgg", nn_vgg), ("nn_ssim", nn_ssim),
+                             ("nn_orb", nn_orb), ("base_nn", base_nn), ("auth", auth), ("copy", copies)):
+                    buckets[t][k] += v
+                for j, gp in enumerate(gps):
+                    img_rows.append([gp, pref, t, os.path.basename(real_paths_v[int(nn_idx[j])]),
+                                     round(nn_alex[j], 4),
+                                     round(nn_vgg[j], 4) if nn_vgg else "",
+                                     round(nn_ssim[j], 4) if nn_ssim else "",
+                                     round(nn_orb[j], 4) if nn_orb else "",
+                                     round(auth[j], 4) if auth else "",
+                                     int(copies[j]) if copies else ""])
+            rows.append([pref, t, len(gps), len(reals),
+                         *[round(np.mean(x), 4) if x else "" for x in (div, sib, src, base)],
+                         cmmd_by_prefix.get(pref, ""),
+                         *[round(np.mean(x), 4) if len(x) else "" for x in (nn_vgg, nn_ssim, nn_orb)]])
+
+    # ---- CMMD: pooled overall + per tag (many more samples than per-prefix -> the reliable number) ----
+    cmmd_overall = None
+    cmmd_by_tag = {t: None for t in tags}
+    if _HAS_CMMD:
+        allg = [im for t in tags for im in gen_rgb_by_tag[t]]
+        allr = [im for t in tags for im in real_rgb_by_tag[t]]
+        cmmd_overall = _cmmd.cmmd_of(allr, allg, device)
+        cmmd_by_tag = {t: _cmmd.cmmd_of(real_rgb_by_tag[t], gen_rgb_by_tag[t], device) for t in tags}
+    print(f"CMMD overall: {cmmd_overall} ; by tag: {cmmd_by_tag}")
+
+    def summ(fid, cmmd, b):
+        return {"FID": fid, "CMMD": cmmd,
+                "diversity": agg(b["div"]),
+                "realism_vs_sibling": agg(b["sib"]), "realism_vs_source": agg(b["src"]),
+                "baseline_real_vs_real": agg(b["base"]),
+                "realism_nn_lpips_alex": agg(b["nn_alex"]), "realism_nn_lpips_vgg": agg(b["nn_vgg"]),
+                "realism_nn_ssim": agg(b["nn_ssim"]), "realism_nn_orb": agg(b["nn_orb"]),
+                "baseline_nn_real_vs_real": agg(b["base_nn"]), "authenticity_gap": agg(b["auth"]),
+                "copy_rate": (round(float(np.mean(b["copy"])), 4) if b["copy"] else None)}
+
+    allb = {k: [] for k in BKEYS}
     for t in tags:
-        for k in allb:
+        for k in BKEYS:
             allb[k] += buckets[t][k]
 
     results = {
-        "gen_dir": gen_dir, "n_generated": len(gen_paths),
-        "overall": summ((fid_overall, allb)),
-        "by_dataset": {t: summ((fid_by_tag[t], buckets[t])) for t in tags},
+        "gen_dir": gen_dir, "n_generated": len(gen_paths), "metrics_version": 2,
+        "overall": summ(fid_overall, cmmd_overall, allb),
+        "by_dataset": {t: summ(fid_by_tag[t], cmmd_by_tag[t], buckets[t]) for t in tags},
     }
     with open(os.path.join(args.out, "metrics.json"), "w") as f:
         json.dump(results, f, indent=2)
     with open(os.path.join(args.out, "per_prefix.csv"), "w", newline="") as f:
         w = csv.writer(f)
         w.writerow(["prefix", "dataset", "n_gen", "n_real", "diversity", "realism_vs_sibling",
-                    "realism_vs_source", "baseline_real_vs_real"])
+                    "realism_vs_source", "baseline_real_vs_real",
+                    "cmmd", "realism_nn_lpips_vgg", "realism_nn_ssim", "realism_nn_orb"])
         w.writerows(sorted(rows))
+    with open(os.path.join(args.out, "per_image.csv"), "w", newline="") as f:
+        w = csv.writer(f)
+        w.writerow(["gen_path", "prefix", "dataset", "nearest_real", "nn_lpips_alex", "nn_lpips_vgg",
+                    "nn_ssim", "nn_orb", "auth_gap", "is_possible_copy"])
+        w.writerows(sorted(img_rows))
     print(json.dumps(results, indent=2))
-    print(f"\nwrote {args.out}/metrics.json + per_prefix.csv")
+    print(f"\nwrote {args.out}/metrics.json + per_prefix.csv + per_image.csv")
 
 
 if __name__ == "__main__":
