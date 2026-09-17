@@ -22,6 +22,17 @@ CKPT_PATH_V2= '/hpc/dctrl/ks723/Data_augmentation/lightning_logs/version_4224844
 CKPT_PATH_V3= '/hpc/dctrl/ks723/Data_augmentation/lightning_logs/version_42603802/checkpoints/epoch=4-step=124999.ckpt'
 CKPT_PATH_V4 = os.environ.get("FT_EVAL_CKPT") or '/hpc/group/youlab/sa603/code/Data_augmentation/lightning_logs/version_52034860/checkpoints/epoch=4-step=375749.ckpt' # sa603 full-data model (job 52034860). Set env FT_EVAL_CKPT to override for eval sweeps. pipeline.py loads THIS var.
 
+# Named checkpoint registry for the sa603 models (repo-relative so it is not path-brittle).
+# Import: `from Data_augmentation.utils.local_config import CHECKPOINTS` then CHECKPOINTS["generalist"].
+_REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # repo root (this file is in utils/)
+CHECKPOINTS = {
+    "base":        f"{_REPO}/lightning_logs/version_52034860/checkpoints/epoch=4-step=375749.ckpt",
+    "2sp":         f"{_REPO}/finetune_runs/shallowsweep_lr5e-6/lightning_logs/version_53408286/checkpoints/epoch=3-step=75999.ckpt",
+    "rattray":     f"{_REPO}/rattray_runs/rat_epochcurve/lightning_logs/version_54107493/checkpoints/epoch=3-step=719.ckpt",
+    "multiplexed": f"{_REPO}/rattray_runs/multiplexed_ft/lightning_logs/version_54549115/checkpoints/epoch=2-step=1448.ckpt",
+    "generalist":  f"{_REPO}/rattray_runs/generalist/lightning_logs/version_54592625/checkpoints/epoch=3-step=5723.ckpt",
+}
+
 # for saving 
 
 OUTPUT_DIR_REPTOREP = f"/hpc/group/youlab/sa603/code/Data_augmentation/inference/v{currentYear}{currentMonth}{currentDay}_{currentHour}{currentMinute}_REPTOREP"
