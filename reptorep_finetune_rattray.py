@@ -26,17 +26,20 @@ FT_TAG    = os.environ.get("FT_TAG", f"rat_lr{FT_LR:.0e}")
 FT_SEED   = int(os.environ.get("FT_SEED", "42"))
 FT_FREEZE = os.environ.get("FT_FREEZE", "none").lower()
 FT_SAVE_TOPK = int(os.environ.get("FT_SAVE_TOPK", "1"))   # disk-safe default: keep only the last/best
+FT_SDLOCKED = os.environ.get("FT_SDLOCKED", "1") == "1"    # 1 = freeze all SD (orig); 0 = also train SD decoder (output_blocks+out)
+FT_BATCH  = int(os.environ.get("FT_BATCH", "4"))           # lower to fit memory when sd_locked=0
+FT_ACCUM  = int(os.environ.get("FT_ACCUM", "1"))           # grad accumulation (FT_BATCH=2 FT_ACCUM=2 -> effective batch 4)
 if FT_FREEZE not in ("none", "hint", "shallow"):
     raise SystemExit(f"[rattray] unknown FT_FREEZE={FT_FREEZE!r}")
 
-print(f"[rattray] resume={FT_RESUME}\n[rattray] json={FT_JSON}\n[rattray] lr={FT_LR} epochs={FT_EPOCHS} tag={FT_TAG} seed={FT_SEED} freeze={FT_FREEZE} save_top_k={FT_SAVE_TOPK}", flush=True)
+print(f"[rattray] resume={FT_RESUME}\n[rattray] json={FT_JSON}\n[rattray] lr={FT_LR} epochs={FT_EPOCHS} tag={FT_TAG} seed={FT_SEED} freeze={FT_FREEZE} save_top_k={FT_SAVE_TOPK} sd_locked={FT_SDLOCKED} batch={FT_BATCH} accum={FT_ACCUM}", flush=True)
 
 pl.seed_everything(FT_SEED, workers=True)
 
 model = create_model(CLDM_V15_YAML).cpu()
 model.load_state_dict(load_state_dict(FT_RESUME, location="cpu"))
 model.learning_rate = FT_LR
-model.sd_locked = True
+model.sd_locked = FT_SDLOCKED
 model.only_mid_control = False
 
 # Layer freezing via optimizer-exclusion (checkpoint-safe; see reptorep_finetune.py for rationale).
@@ -61,19 +64,20 @@ if FT_FREEZE != "none":
     print(f"[rattray] FT_FREEZE={FT_FREEZE}: excluded {frozen_params:,} params from optimizer", flush=True)
 
 run_id, run_dir = tracking.write_manifest("finetune_rattray", {
-    "tag": FT_TAG, "lr": FT_LR, "epochs": FT_EPOCHS, "batch_size": 4, "seed": FT_SEED,
+    "tag": FT_TAG, "lr": FT_LR, "epochs": FT_EPOCHS, "batch_size": FT_BATCH, "seed": FT_SEED, "sd_locked": FT_SDLOCKED, "accum": FT_ACCUM,
     "freeze": FT_FREEZE, "frozen_params": frozen_params, "resume_ckpt": FT_RESUME,
     "train_json": FT_JSON, "save_top_k": FT_SAVE_TOPK, "dataset": "rattray_Paeruginosa",
 })
 
 dataset = MyDataset(FT_JSON)
-dataloader = DataLoader(dataset, num_workers=0, batch_size=4, shuffle=True)
+dataloader = DataLoader(dataset, num_workers=0, batch_size=FT_BATCH, shuffle=True)
 print(f"[rattray] {len(dataset)} pairs", flush=True)
 
 ckpt_cb = ModelCheckpoint(save_top_k=FT_SAVE_TOPK, every_n_epochs=1, filename="{epoch}-{step}")
 trainer = pl.Trainer(
     default_root_dir=f"/hpc/group/youlab/sa603/code/Data_augmentation/rattray_runs/{FT_TAG}",
     enable_progress_bar=False, gpus=1, precision=32, max_epochs=FT_EPOCHS, callbacks=[ckpt_cb],
+    accumulate_grad_batches=FT_ACCUM,
 )
 trainer.fit(model, dataloader)
 print("[rattray] done", flush=True)

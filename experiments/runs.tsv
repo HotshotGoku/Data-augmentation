@@ -111,3 +111,4 @@ timestamp	run_id	kind	tag	slurm_job_id	git_sha
 2026-09-15T09:25:11	finetune_rattray_adapt_rattray_ep4_generalist_N0_s1_55510258	finetune_rattray	adapt_rattray_ep4_generalist_N0_s1	55510258	8701978
 2026-09-15T09:35:45	finetune_rattray_adapt_rattray_ep4_base_N0_s2_55510258	finetune_rattray	adapt_rattray_ep4_base_N0_s2	55510258	8701978
 2026-09-15T09:46:21	finetune_rattray_adapt_rattray_ep4_generalist_N0_s2_55510258	finetune_rattray	adapt_rattray_ep4_generalist_N0_s2	55510258	8701978
+2026-09-18T07:19:38	finetune_rattray_mplex_unlock_55755686	finetune_rattray	mplex_unlock	55755686	3b7166f
