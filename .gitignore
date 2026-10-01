@@ -67,3 +67,19 @@ build_oneslide.js
 build_update_deck.js
 build_update2_slide.js
 build_kinshuk_metrics_slide.js
+
+# Large generated outputs / gen images (2026-10)
+flux_cn_runs/
+flux_quant_out/
+pixcell_gen/
+pixcell1024_gen/
+pixcell_eval_out/
+pixcell_divsweep_out/
+cads_sweep_out/
+cads_sweep_rattray_out/
+backbone_derisk_out/
+bbdm_eval_out/
+phase2_unlock_out/
+generalist_eval_out/
+model_results/bakeoff_compare/staging/
+model_results/bakeoff_compare/*/
