@@ -2,7 +2,7 @@
 Sarthak. Current state and verdict; the backbone search is closed. (A detailed writeup of past methodologies will be a separate doc.)
 
 ## Bottom line
-We ran an exhaustive search for a generative backbone that beats the in-domain SD1.5 replicate-to-replicate augmenter. **Nothing does.** Not Flux (escalated all the way to a bf16 full base with 3× ControlNet capacity), not FastGAN, not StyleGAN2-ADA, not SD3.5-ControlNet, not zero-shot general priors, and not a from-scratch conditional DDPM. Every alternative loses to in-domain SD1.5 on realism and CMMD.
+We ran an exhaustive search for a generative backbone that beats the in-domain SD1.5 replicate-to-replicate augmenter. **Nothing does.** Not Flux (escalated all the way to a bf16 full base with 3× ControlNet capacity), not FastGAN, not StyleGAN2-ADA, not SD3.5-ControlNet, not zero-shot general priors, and not a from-scratch conditional DDPM. On branching every alternative loses to in-domain SD1.5 on both realism and CMMD; on multiplexed a few edge it on CMMD, but only with incoherent (Flux), unconditional (FastGAN), or domain-locked (PixCell) samples — none is a better *usable* augmenter.
 
 The real, defensible win is **on the SD1.5 side, not from a newer backbone**: training SD1.5 with **conditioning-dropout** to produce more diverse synthetic replicates **beats plain rotation on the metric that matters**, axis-selectively, across two domains — branching → `shape_factor`, multiplexed → `aTc` decode. The one-line summary: *"smarter diversity on SD1.5" wins; "newer backbone" never does.*
 
@@ -26,17 +26,19 @@ Identical scoring for every candidate (`eval_metrics.py`: realism-vs-sibling and
 **Flux escalation ladder (the fairest shot a newer backbone got):** pilot `0.524 / 8.78` → scaled fp8/CN4 `0.499 / 5.53` → bf16 full base + CN6 `0.503 / 4.84`. CMMD improves monotonically with each lever but **realism plateaus at ~0.50 and never approaches SD1.5's 0.32**. The gap is structural (faint, incomplete branches), not quantization or undertraining.
 
 ## The backbone comparison (multiplexed, image CMMD)
-The verdict flips by domain on raw image quality — PixCell's cell-microscopy prior suits fluorescence colonies.
+The full sweep was re-run on multiplexed (2026-10-12). The verdict flips by domain on raw image quality — PixCell's cell-microscopy prior suits fluorescence colonies, and several models beat the in-domain baseline on CMMD.
 
-| Backbone | CMMD ↓ | Note |
-|---|---|---|
-| PixCell ep30 | **5.78** | best on multiplexed |
-| SD1.5 in-domain — conditioning-dropout | 7.97 | **beats in-domain baseline** (new, 2026-10-12) |
-| SD1.5 in-domain — baseline | 12.6 | |
-| zero-shot SDXL | 42.99 | catastrophic (new, 2026-10-12) |
-| Flux / conditional DDPM / FastGAN | *in progress* | multiplexed fill-out jobs running |
+| Backbone | CMMD ↓ | realism ↓ | Note |
+|---|---|---|---|
+| PixCell ep30 | **5.78** | 0.346 | best on multiplexed image quality |
+| Flux — fp8/CN4 | 7.71 | 0.597 | low CMMD but incoherent (poor realism, diversity 0.62) |
+| **SD1.5 — conditioning-dropout** | 7.97 | **0.335** | best *coherent* result; beats the in-domain baseline the right way |
+| FastGAN — unconditional | 8.46 | — | undertrained + unconditional; not a usable augmenter |
+| SD1.5 — in-domain baseline | 12.6 | 0.412 | |
+| conditional DDPM — from scratch | 19.71 | 0.696 | loses — blurry |
+| zero-shot SDXL | 42.99 | 0.572 | catastrophic |
 
-PixCell wins multiplexed on image CMMD but is useless on branching and was never the downstream winner, so it is a domain-specific curiosity, not a general replacement.
+On raw CMMD, PixCell, Flux, dropout, and FastGAN all beat the in-domain SD1.5 baseline here — but each caveat matters: PixCell is useless on branching and was never the downstream winner; Flux buys its low CMMD with incoherent, unrealistic samples (realism 0.597, the same failure mode as branching); FastGAN is unconditional, so it is not a usable augmenter. **Only conditioning-dropout beats the baseline the right way — low CMMD *and* the best realism (0.335)** — reinforcing the branching finding that smarter diversity on SD1.5 is the win.
 
 ## The real win: downstream utility
 Image beauty is not the goal — downstream utility is. The mechanism is about information: **rotation is label-invariant**, so rotated copies carry the *same* label and add no new signal; **synthetic replicates have genuinely different morphology** with their own computed labels, which is new signal on the axis where the synthetic variation is faithful.
