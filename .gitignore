@@ -83,3 +83,18 @@ phase2_unlock_out/
 generalist_eval_out/
 model_results/bakeoff_compare/staging/
 model_results/bakeoff_compare/*/
+
+# --- 2026-10-12: backbone-search outputs + figures (regenerable; HTML viewers/decks stay local) ---
+/*.png
+*.bak
+backbone_screen/
+cond_ddpm_runs/
+ddpm_runs/
+dropout_realsweep/
+gan_runs/
+mux_dropout_eval/
+pixcell_smoke_out/
+sd15_branching_eval/
+sd15_divsweep/
+sd15_etasweep/
+strength_sweep_out/
