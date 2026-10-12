@@ -112,3 +112,8 @@ timestamp	run_id	kind	tag	slurm_job_id	git_sha
 2026-09-15T09:35:45	finetune_rattray_adapt_rattray_ep4_base_N0_s2_55510258	finetune_rattray	adapt_rattray_ep4_base_N0_s2	55510258	8701978
 2026-09-15T09:46:21	finetune_rattray_adapt_rattray_ep4_generalist_N0_s2_55510258	finetune_rattray	adapt_rattray_ep4_generalist_N0_s2	55510258	8701978
 2026-09-18T07:19:38	finetune_rattray_mplex_unlock_55755686	finetune_rattray	mplex_unlock	55755686	3b7166f
+2026-10-01T16:54:37	finetune_branching_sd15_smoke_57167029	finetune	branching_sd15_smoke	57167029	dfe54e4
+2026-10-01T16:59:04	finetune_branching_sd15_fromseed_57167387	finetune	branching_sd15_fromseed	57167387	dfe54e4
+2026-10-01T17:02:56	finetune_branching_sd15_fromseed_57167638	finetune	branching_sd15_fromseed	57167638	dfe54e4
+2026-10-08T18:47:18	finetune_branching_sd15_dropout_58186657	finetune	branching_sd15_dropout	58186657	dfe54e4
+2026-10-11T13:05:30	finetune_mux_sd15_dropout_58371485	finetune	mux_sd15_dropout	58371485	dfe54e4

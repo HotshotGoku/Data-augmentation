@@ -15,12 +15,13 @@ OUT = os.environ.get("SYNTH_DIR", "/hpc/group/youlab/sa603/data/branching_downst
 S = int(os.environ.get("SYNTH_PER_SRC", "8"))
 os.makedirs(OUT, exist_ok=True)
 
+OFFSET = int(os.environ.get("SYNTH_OFFSET", "0"))   # for ensemble: offset sample index so two configs don't collide
 def cond_of(p): return os.path.basename(p).split("_")[0]
 exclude = {cond_of(p) for p in glob.glob(f"{EXCLUDE_DIR}/*.TIF")}
 BASE = {"prompt": "", "a_prompt": "",
         "n_prompt": "longbody, lowres, bad anatomy, cropped, worst quality, low quality",
         "image_resolution": 256, "ddim_steps": 50, "guess_mode": False,
-        "strength": 1.0, "scale": 9.0, "eta": 0.0}
+        "strength": float(os.environ.get("STRENGTH", "1.0")), "scale": float(os.environ.get("SCALE", "9.0")), "eta": 0.0}
 CHUNK = 4
 
 srcs = []
@@ -39,7 +40,7 @@ for k, (cond, tag, fp) in enumerate(srcs):
     for ci in range((S + CHUNK - 1) // CHUNK):
         a = dict(BASE); a["num_samples"] = min(CHUNK, S - n_done); a["seed"] = 729397049 + ci
         for out in pipeline.process(img, **a):
-            cv2.imwrite(f"{OUT}/{cond}_{tag}_s{n_done}.png", cv2.cvtColor(out, cv2.COLOR_RGB2BGR))
+            cv2.imwrite(f"{OUT}/{cond}_{tag}_s{OFFSET + n_done}.png", cv2.cvtColor(out, cv2.COLOR_RGB2BGR))
             n_done += 1
     if k % 40 == 0:
         print(f"  {k}/{len(srcs)}", flush=True)
