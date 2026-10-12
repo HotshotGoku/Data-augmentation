@@ -24,7 +24,8 @@ pipe = FluxControlNetPipeline(
     vae=pipe0.vae, text_encoder=pipe0.text_encoder, text_encoder_2=pipe0.text_encoder_2,
     tokenizer=pipe0.tokenizer, tokenizer_2=pipe0.tokenizer_2,
     transformer=pipe0.transformer, controlnet=cn, scheduler=pipe0.scheduler)
-quantize(pipe.transformer, weights=qfloat8); freeze(pipe.transformer)
+if os.environ.get("QUANT", "fp8") != "none":   # match training: bf16-trained CN needs bf16 base at inference
+    quantize(pipe.transformer, weights=qfloat8); freeze(pipe.transformer)
 if os.environ.get("OFFLOAD", "model") == "none":
     pipe.to("cuda")            # faster at 256px if it fits (fp8 base ~12.5G + small activations)
 else:

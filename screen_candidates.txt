@@ -1,0 +1,4 @@
+sd15|stable-diffusion-v1-5/stable-diffusion-v1-5|fp16
+sdxl|stabilityai/stable-diffusion-xl-base-1.0|fp16
+sd35m|stabilityai/stable-diffusion-3.5-medium|bf16
+pixartsigma|PixArt-alpha/PixArt-Sigma-XL-2-512-MS|fp16

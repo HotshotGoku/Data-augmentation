@@ -46,7 +46,8 @@ vae = pipe.vae.to(DEV).eval()
 for p in vae.parameters(): p.requires_grad_(False)
 transformer = pipe.transformer
 controlnet = FluxControlNetModel.from_transformer(transformer, num_layers=CN_LAYERS, num_single_layers=0)  # small CN from base
-quantize(transformer, weights=qfloat8); freeze(transformer)
+if os.environ.get("QUANT", "fp8") != "none":   # QUANT=none -> keep bf16 base (needs >24GB GPU), no fp8 quality loss
+    quantize(transformer, weights=qfloat8); freeze(transformer)
 transformer.to(DEV).eval()
 for p in transformer.parameters(): p.requires_grad_(False)
 controlnet.to(DEV, DT).train()
@@ -69,7 +70,14 @@ def encode(img):
     B, C, H, W = l.shape
     return _pack(l, B, C, H, W), (C, H, W)
 
-img_ids = None; step = 0; t0 = time.time(); opt.zero_grad()
+step = 0
+_resume = os.environ.get("RESUME_CKPT", "")   # survive scavenger preemption: --requeue + sbatch finds latest .pth
+if _resume and os.path.exists(_resume):
+    import re as _re
+    controlnet.load_state_dict(torch.load(_resume, map_location="cpu")); controlnet.to(DEV, DT)
+    _m = _re.search(r"step(\d+)", _resume); step = int(_m.group(1)) if _m else 0
+    print(f"[flux-cn] RESUMED {_resume} @ step {step}", flush=True)
+img_ids = None; t0 = time.time(); opt.zero_grad()
 while step < MAX_STEPS:
     random.shuffle(pairs)
     for pr in pairs:
