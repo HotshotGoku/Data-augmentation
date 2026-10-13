@@ -31,21 +31,26 @@ COLS = [
     "branching":   f"{R}/sd15_branching_eval/{{c}}_1.png",
     "multiplexed": f"{DATA}/multiplexed_eval/synth_ft/{{c}}_*_s0.png"}),
  ("SD1.5\ndropout*", GRN, {
-    "branching":   f"{R}/dropout_realsweep/drop_s1.0_g7.0/{{c}}_1.png"}),
+    "branching":   f"{R}/dropout_realsweep/drop_s1.0_g7.0/{{c}}_1.png",
+    "multiplexed": f"{R}/mux_dropout_eval/gen/{{c}}_1.png"}),
  ("SD1.5\ngeneralist", AMBER, {
     "branching":   f"{R}/generalist_eval_out/gen_epoch=5/ff/gen/{{c}}_1.png",
     "multiplexed": f"{DATA}/multiplexed_eval/synth_generalist/{{c}}_*_s0.png"}),
- ("Flux\nbf16+CN6", BLUE, {
-    "branching":   f"{R}/flux_cn_runs/scaled_bf16/eval_cn10/{{c}}_1.png"}),
+ ("Flux\nControlNet", BLUE, {
+    "branching":   f"{R}/flux_cn_runs/scaled_bf16/eval_cn10/{{c}}_1.png",
+    "multiplexed": f"{R}/flux_cn_runs/mux/eval_cn10/{{c}}_1.png"}),
  ("PixCell", CORAL, {
     "branching":   f"{R}/pixcell_gen/branching256_ep30_ddpm/{{c}}_1.png",
     "multiplexed": f"{R}/pixcell_eval_out/pixcell_ep30/gen/{{c}}_1.png"}),
  ("FastGAN\n(uncond)", VIOLET, {
-    "branching":   f"{R}/gan_runs/gen/lwgan_m2/gen_0003.png"}),
+    "branching":   f"{R}/gan_runs/gen/lwgan_m2/gen_0003.png",
+    "multiplexed": f"{R}/gan_runs/gen/lwgan_mux/gen_0003.png"}),
  ("conditional\nDDPM", CORAL, {
-    "branching":   f"{R}/cond_ddpm_runs/gen250/{{c}}_1.png"}),
+    "branching":   f"{R}/cond_ddpm_runs/gen250/{{c}}_1.png",
+    "multiplexed": f"{R}/cond_ddpm_runs/mux/gen/{{c}}_1.png"}),
  ("zero-shot\nSDXL", CORAL, {
-    "branching":   f"{R}/backbone_screen/sdxl_s70/{{c}}_1.png"}),
+    "branching":   f"{R}/backbone_screen/sdxl_s70/{{c}}_1.png",
+    "multiplexed": f"{R}/backbone_screen/sdxl_mux_s70/{{c}}_1.png"}),
 ]
 
 DATASETS = [

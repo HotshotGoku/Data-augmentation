@@ -98,3 +98,6 @@ sd15_branching_eval/
 sd15_divsweep/
 sd15_etasweep/
 strength_sweep_out/
+
+# 2026-10-13: per-dataset synth output dirs (generated)
+*_synth_*/
