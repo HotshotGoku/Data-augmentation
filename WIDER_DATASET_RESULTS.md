@@ -40,10 +40,19 @@ So the rule is the original axis-selective claim, now with visual proof: **gener
 ## Conclusion
 This is a clean, honest **boundary result**: the "smarter diversity on SD1.5 beats rotation" finding holds on the axes where the augmenter is faithful (branching shape, mux aTc) and not elsewhere. That is more defensible and more publishable than an over-broad "it generalizes" — it maps *where* the method helps and gives a mechanism for *why*.
 
-## Status (in progress, 2026-10-15)
-- **Full backbone bake-off** on rattray + KL (Flux, conditional DDPM trainings launched; FastGAN / PixCell / zero-shot SDXL to follow) — to confirm the negative is backbone-general, not SD1.5-specific.
-- **Sim-templated track** (Kinshuk's sim→exp domain, real/synth/real+synth) — queued.
-- This doc will be updated with those results.
+## Backbone bake-off — no backbone rescues it (2026-10-16)
+We retrained two architecturally-distinct augmenter backbones on both new datasets and re-ran the 15-seed downstream vs rotation. **Neither beats rotation — both lose on both datasets**, confirming the negative is backbone-general, not an SD1.5 limitation. See `bakeoff_result.png`.
+
+| Backbone | Rattray strain Δ | KL ratio Δ |
+|---|---|---|
+| SD1.5 (best config) | −0.108 | −0.001 (tie) |
+| conditional DDPM | −0.196 | −0.058 |
+| Flux ControlNet | −0.258 | −0.104 |
+
+Mechanistic confirmation: the **less faithful** the backbone (Flux's blobby synth, DDPM's blurry) the **more** it hurts; the most faithful (SD1.5) hurts least — exactly what the mean-regression / label-unfaithfulness mechanism predicts. (FastGAN is unconditional, so it has no per-source augmenter arm; PixCell omitted since two trained backbones already confirm the pattern.)
+
+## Still in progress
+- **Sim-templated track** (Kinshuk's sim→exp domain; real vs real+synth) — a *different* paradigm than replicate-to-replicate, reported separately; downstream task being scoped.
 
 ## Artifacts
 Figure `boundary_result.png` (builder `make_boundary_fig.py`); data `{rattray,kl}_downstream{,_15,_long}.tsv`; harnesses `ds_downstream.py`, `ds_gen.py`, `learnability_gate.py` (see `METHODOLOGY.md`).
