@@ -31,19 +31,19 @@ if os.environ.get("OFFLOAD", "model") == "none":
 else:
     pipe.enable_model_cpu_offload()
 
-srcs = sorted(glob.glob(f"{SOURCES}/*.TIF"))
+srcs = sorted(glob.glob(f"{SOURCES}/" + os.environ.get("SRC_PAT", "*.TIF")))
 MAX_SRC = int(os.environ.get("MAX_SRC", "0"))
 if MAX_SRC: srcs = srcs[:MAX_SRC]
 print(f"[flux-gen] {len(srcs)} sources x {N} -> {OUT}", flush=True)
 for k, fp in enumerate(srcs):
-    prefix = os.path.basename(fp).split("_")[0]
+    prefix = (os.path.splitext(os.path.basename(fp))[0] + "_s") if os.environ.get("STEM") else (os.path.basename(fp).split("_")[0] + "_")
     im = cv2.resize(cv2.cvtColor(cv2.imread(fp, cv2.IMREAD_COLOR), cv2.COLOR_BGR2RGB), (RES, RES))
     ctrl = Image.fromarray(im)
     for i in range(N):
         img = pipe(prompt="", control_image=ctrl, controlnet_conditioning_scale=CN_SCALE,
                    num_inference_steps=STEPS, guidance_scale=GUID, height=RES, width=RES,
                    generator=torch.Generator("cpu").manual_seed(i)).images[0]
-        img.save(f"{OUT}/{prefix}_{i+1}.png")
+        img.save(f"{OUT}/{prefix}{i+1}.png")
     if k % 5 == 0:
         print(f"  {k}/{len(srcs)} {prefix}", flush=True)
 print("[flux-gen] done", flush=True)

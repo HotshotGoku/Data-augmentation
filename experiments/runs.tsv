@@ -119,3 +119,7 @@ timestamp	run_id	kind	tag	slurm_job_id	git_sha
 2026-10-11T13:05:30	finetune_mux_sd15_dropout_58371485	finetune	mux_sd15_dropout	58371485	dfe54e4
 2026-10-13T03:19:28	finetune_rattray_sd15_dropout_58493167	finetune	rattray_sd15_dropout	58493167	6bfd062
 2026-10-13T03:19:28	finetune_rattray_sd15_58493166	finetune	rattray_sd15	58493166	6bfd062
+2026-10-13T10:56:32	finetune_kl_sd15_dropout_58505931	finetune	kl_sd15_dropout	58505931	8d52331
+2026-10-13T10:56:32	finetune_kl_sd15_58505930	finetune	kl_sd15	58505930	8d52331
+2026-10-14T07:49:07	finetune_rattray_sd15_long_58584248	finetune	rattray_sd15_long	58584248	8d52331
+2026-10-14T07:49:07	finetune_kl_sd15_long_58584250	finetune	kl_sd15_long	58584250	8d52331

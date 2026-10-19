@@ -11,7 +11,7 @@ def load(d, pat):
     return [cv2.cvtColor(cv2.imread(f, cv2.IMREAD_COLOR), cv2.COLOR_BGR2RGB)
             for f in sorted(glob.glob(os.path.join(d, pat)))]
 
-reals = load(REALS, "*.TIF"); gens = load(G, "*.png")
+reals = load(REALS, os.environ.get("REALS_PAT", "*.TIF")); gens = load(G, "*.png")
 er = cmmd.clip_embed_rgb(reals, dev); eg = cmmd.clip_embed_rgb(gens, dev)
 val = float(cmmd.cmmd_from_embeds(er, eg))
 print(f"\n>>> CMMD(gen vs reals) = {val:.3f}   (n_real={len(reals)} n_gen={len(gens)})", flush=True)

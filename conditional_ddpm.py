@@ -74,11 +74,11 @@ elif MODE == "gen":
                 x = torch.sqrt(ac2) * x0 + torch.sqrt((1 - ac2 - sig ** 2).clamp(min=0)) * pred + sig * torch.randn_like(x)
             else: x = x0
         return x
-    for fp in sorted(glob.glob(f"{SRC}/*.TIF")):
-        cond = os.path.basename(fp).split("_")[0]
+    for fp in sorted(glob.glob(f"{SRC}/" + os.environ.get("SRC_PAT", "*.TIF"))):
+        cond = (os.path.splitext(os.path.basename(fp))[0] + "_s") if os.environ.get("STEM") else (os.path.basename(fp).split("_")[0] + "_")
         src = load_img(fp)[None].to(DEV).repeat(NUM, 1, 1, 1)
         imgs = ddim(src)
         for k in range(NUM):
             im = ((imgs[k].clamp(-1, 1) + 1) * 127.5).permute(1, 2, 0).cpu().numpy().astype(np.uint8)
-            Image.fromarray(im).save(f"{OUT}/{cond}_{k+1}.png")
+            Image.fromarray(im).save(f"{OUT}/{cond}{k+1}.png")
     print("DONE gen ->", OUT, flush=True)
