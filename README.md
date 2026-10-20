@@ -1,84 +1,25 @@
-# Data Augmentation Project
+# Data_augmentation
 
-This is a spinoff project from the main Physics_constrained_DL_pattern_prediction project.
+Replicate-to-replicate colony-image augmenter (ControlNet + Stable Diffusion 1.5): given one real
+colony replicate, generate new realistic replicates of the same condition to expand scarce datasets.
+Spinoff of `Physics_constrained_DL_pattern_prediction` (Kinshuk Sahu et al.).
 
-## Shared Resources
+**Core finding:** no newer backbone beats in-domain SD1.5; the real win is conditioning-dropout SD1.5
+(smarter diversity on the same backbone). Full story: `docs/PROJECT_UPDATE.md` + `docs/METHODOLOGY.md`.
 
-This project uses shared resources (checkpoint files, datasets) from the original project without duplicating them.
+## Layout
+| Folder | What |
+|---|---|
+| `pipeline/`    | Shared SD1.5 augmenter engine — train / finetune / infer / metrics / utils |
+| `datasets/`    | Per-dataset builders, pilots, onboarding; generic harness; data-efficiency curves |
+| `bakeoff/`     | Backbone search (Flux/PixCell/DDPM/GAN/SD3-SDXL/BBDM/SD1.5) — **CLOSED, negative** |
+| `downstream/`  | Downstream-utility experiments (aTc/IPTG decoder, colony-feature regression) |
+| `diversity/`   | Diversity improvement (CADS, conditioning-dropout, sweeps) |
+| `reporting/`   | Figure/deck builders + committed figures + master result tables |
+| `experiments/` | Experiment-tracking ledger (`runs.tsv` + per-run manifests) |
+| `docs/`        | Methodology, models/datasets reference, literature survey |
 
-The configuration for shared resources is in `shared_resources_config.py`.
-
-### Key Shared Resources:
-
-- **control_sd15_ini.ckpt**: Located in original project's sim_to_exp_diffusion/controlnet_essential/
-- **v1-5-pruned.ckpt**: Located in original project's sim_to_exp_diffusion/controlnet_essential/models/
-- **Trained models**: /hpc/group/youlab/ks723/miniconda3/saved_models/trained/
-- **Datasets**: /hpc/group/youlab/ks723/storage/
-
-
-
-### Usage
-
-**Option 1: Import modules from original project (Recommended)**
-
-The config automatically adds the original project to your Python path. You can import modules directly:
-
-```python
-# This is already done in shared_resources_config
-import sys
-sys.path.insert(0, '/hpc/dctrl/ks723/Physics_constrained_DL_pattern_prediction/sim_to_exp_diffusion/controlnet_essential')
-
-# Now you can import from the original project
-from cldm.model import create_model, load_state_dict
-from shared_resources_config import CONTROL_SD15_CKPT, CLDM_V15_YAML
-
-# Use the shared checkpoint and config
-model = create_model(CLDM_V15_YAML).cpu()
-model.load_state_dict(load_state_dict(CONTROL_SD15_CKPT, location='cpu'))
-```
-
-**Option 2: Copy only what you need**
-
-If you prefer independence, copy the `cldm/` directory and other modules you need to this folder.
-
-### Example Files
-
-To check that all shared resources are accessible:
-
-```bash
-python shared_resources_config.py
-```
-
-## Getting Started
-
-1. Use the existing conda environment:
-
-   ```bash
-   conda activate pytorch_PA_patternprediction
-   ```
-2. Set up your local configuration:
-
-   ```bash
-   cd /hpc/dctrl/ks723/Data_augmentation
-
-   # Option 1: Use environment variable (recommended for GitHub)
-   export PHYSICS_DL_PROJECT_PATH=/your/path/to/Physics_constrained_DL_pattern_prediction
-
-   # Option 2: Edit shared_resources_config.py directly
-   # (but this will be committed to git)
-   ```
-3. Verify shared resources:
-
-   ```bash
-   python shared_resources_config.py
-   ```
-4. Start developing your augmentation scripts!
-
-### For GitHub
-
-The project is GitHub-ready:
-
-- `.gitignore` excludes checkpoints and local configs
-- `example_config.py` shows configuration structure
-- `shared_resources_config.py` uses environment variable `PHYSICS_DL_PROJECT_PATH`
-- No hardcoded absolute paths in your scripts
+## Setup
+`conda activate pytorch_PA_patternprediction`. Shared checkpoints/datasets resolve via
+`pipeline/utils/shared_resources_config.py` (set `PHYSICS_DL_PROJECT_PATH`). Checkpoints, training
+runs, and generated images are gitignored.
