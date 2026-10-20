@@ -1,0 +1,165 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8">
+<title>reptorep augmenter — out-of-distribution test</title>
+<style>
+:root{color-scheme:dark}
+body{background:#0e0f12;color:#e6e6e6;font:15px/1.5 -apple-system,Segoe UI,Roboto,sans-serif;margin:0;padding:32px 40px 80px}
+h1{font-size:22px;margin:0 0 4px}h2{font-size:17px;margin:34px 0 8px;border-bottom:1px solid #2a2c31;padding-bottom:6px}
+h3{font-size:15px;color:#93c5fd;margin:20px 0 8px}
+.sub{color:#9aa0a6;margin:0 0 8px}
+.note{background:#16181d;border:1px solid #2a2c31;border-radius:8px;padding:12px 16px;margin:14px 0;color:#c9cdd3}
+table{border-collapse:collapse;margin:12px 0;font-size:14px}
+th,td{border:1px solid #2a2c31;padding:6px 12px;text-align:right}
+th{color:#9aa0a6;font-weight:600}td:first-child,th:first-child{text-align:left}
+.bad{color:#fca5a5;font-weight:600}.good{color:#86efac;font-weight:600}
+.grid{display:grid;grid-template-columns:70px repeat(4,180px);gap:8px 12px;align-items:center;margin-bottom:10px}
+.grid img{width:180px;height:180px;border-radius:6px;border:1px solid #2a2c31;display:block}
+.grid .hd{color:#9aa0a6;font-size:12px;font-weight:600}
+.grid .rowlbl{color:#e6e6e6;font-size:14px;text-align:right}
+.gallery{display:flex;flex-wrap:wrap;gap:6px}
+.gallery img{width:104px;height:104px;border-radius:4px;border:1px solid #23252b}
+code{background:#1a1c21;padding:1px 5px;border-radius:4px;font-size:13px}
+</style></head><body>
+<h1>Out-of-distribution test — held-out species</h1>
+<p class="sub">The augmenter (trained on grayscale brightfield <i>P. aeruginosa</i> branching colonies) run on a <b>two-species fluorescence co-culture</b> (KL set) it never saw. This is the "does it generalize to a novel species?" test.</p>
+
+<div class="note"><b>Result: it does not generalize.</b> On every novel input — a solid red colony, a green+red co-culture, even a near-empty plate — the model generates the <b>same grayscale dendritic sunburst</b>. It strips the fluorescence, ignores the input's shape, and imposes its training-domain branching prior. Diversity is unchanged, so it is not mode-collapsing — it is <i>confidently generating the wrong thing</i>.</div>
+
+<h2>Metrics — in-domain vs OOD</h2>
+<table>
+<tr><th>Metric</th><th>In-domain</th><th>OOD (KL 2-species)</th><th>change</th></tr>
+<tr><td>FID ↓ (realism)</td><td>74.1</td><td class="bad">345.9</td><td>4.7× worse</td></tr>
+<tr><td>realism vs sibling ↓ (LPIPS)</td><td>0.314</td><td class="bad">0.817</td><td>2.6× worse</td></tr>
+<tr><td>baseline: real vs real</td><td>0.232</td><td>0.362</td><td>—</td></tr>
+<tr><td><b>realism ÷ baseline</b> (normalized)</td><td class="good">1.36×</td><td class="bad">2.26×</td><td>the clean gap</td></tr>
+<tr><td>realism vs source ↓</td><td>0.305</td><td class="bad">0.805</td><td>2.6× worse</td></tr>
+<tr><td>diversity (LPIPS)</td><td>0.254</td><td>0.286</td><td>~unchanged</td></tr>
+</table>
+<p class="sub">The <b>÷baseline</b> row is the fair one: it divides out how variable real replicates are anyway. In-domain the model sits 1.36× the real-replicate distance; OOD it is 2.26×.</p>
+
+<h3>In-domain gradient (for reference)</h3>
+<table>
+<tr><th>Dataset</th><th>FID ↓</th><th>realism vs sibling ↓</th><th>baseline</th><th>÷baseline</th><th>diversity</th></tr>
+<tr><td>FINAL (core PA branching)</td><td>76.9</td><td>0.354</td><td>0.260</td><td>1.36×</td><td>0.287</td></tr>
+<tr><td>KUIZHU (held-out strains)</td><td>110.3</td><td>0.321</td><td>0.275</td><td>1.17×</td><td>0.263</td></tr>
+<tr><td>EMRAH (compact Pa/Kp)</td><td>105.7</td><td>0.249</td><td>0.161</td><td>1.55×</td><td>0.173</td></tr>
+</table>
+
+<h2>The failure, visually</h2>
+<p class="sub">Real <b>source</b> (fluorescence, what the model saw) → its <b>two generations</b> → a real <b>sibling</b> replicate. Note the generations look nothing like either.</p>
+<div class="grid">
+<div class="hd"></div><div class="hd">Source (real, input)</div><div class="hd">Generated #1</div><div class="hd">Generated #2</div><div class="hd">Real sibling</div>
+<div class="rowlbl">0-1</div>
+<img src="ood/refs_png/0-1_1.png">
+<img src="ood/gen/0-1_1.png">
+<img src="ood/gen/0-1_2.png">
+<img src="ood/refs_png/0-1_2.png">
+<div class="rowlbl">1-0</div>
+<img src="ood/refs_png/1-0_1.png">
+<img src="ood/gen/1-0_1.png">
+<img src="ood/gen/1-0_2.png">
+<img src="ood/refs_png/1-0_2.png">
+<div class="rowlbl">1-1</div>
+<img src="ood/refs_png/1-1_1.png">
+<img src="ood/gen/1-1_1.png">
+<img src="ood/gen/1-1_2.png">
+<img src="ood/refs_png/1-1_2.png">
+<div class="rowlbl">1-3</div>
+<img src="ood/refs_png/1-3_1.png">
+<img src="ood/gen/1-3_1.png">
+<img src="ood/gen/1-3_2.png">
+<img src="ood/refs_png/1-3_2.png">
+<div class="rowlbl">3-1</div>
+<img src="ood/refs_png/3-1_1.png">
+<img src="ood/gen/3-1_1.png">
+<img src="ood/gen/3-1_2.png">
+<img src="ood/refs_png/3-1_2.png">
+<div class="rowlbl">1-19</div>
+<img src="ood/refs_png/1-19_1.png">
+<img src="ood/gen/1-19_1.png">
+<img src="ood/gen/1-19_2.png">
+<img src="ood/refs_png/1-19_2.png">
+<div class="rowlbl">19-1</div>
+<img src="ood/refs_png/19-1_1.png">
+<img src="ood/gen/19-1_1.png">
+<img src="ood/gen/19-1_2.png">
+<img src="ood/refs_png/19-1_2.png">
+<div class="rowlbl">1-49</div>
+<img src="ood/refs_png/1-49_1.png">
+<img src="ood/gen/1-49_1.png">
+<img src="ood/gen/1-49_2.png">
+<img src="ood/refs_png/1-49_2.png">
+<div class="rowlbl">49-1</div>
+<img src="ood/refs_png/49-1_1.png">
+<img src="ood/gen/49-1_1.png">
+<img src="ood/gen/49-1_2.png">
+<img src="ood/refs_png/49-1_2.png">
+</div>
+<h2>All 58 generated OOD images</h2>
+<p class="sub">Every one is the same grayscale branching morphology, regardless of the (wildly different) fluorescent inputs — that sameness IS the failure.</p>
+<div class="gallery">
+<img src="ood/gen/0-1_1.png" title="0-1_1.png">
+<img src="ood/gen/0-1_2.png" title="0-1_2.png">
+<img src="ood/gen/1-0_1.png" title="1-0_1.png">
+<img src="ood/gen/1-0_2.png" title="1-0_2.png">
+<img src="ood/gen/1-1_1.png" title="1-1_1.png">
+<img src="ood/gen/1-1_2.png" title="1-1_2.png">
+<img src="ood/gen/1-19_1.png" title="1-19_1.png">
+<img src="ood/gen/1-19_2.png" title="1-19_2.png">
+<img src="ood/gen/1-3_1.png" title="1-3_1.png">
+<img src="ood/gen/1-3_2.png" title="1-3_2.png">
+<img src="ood/gen/1-4_1.png" title="1-4_1.png">
+<img src="ood/gen/1-4_2.png" title="1-4_2.png">
+<img src="ood/gen/1-49_1.png" title="1-49_1.png">
+<img src="ood/gen/1-49_2.png" title="1-49_2.png">
+<img src="ood/gen/1-5_1.png" title="1-5_1.png">
+<img src="ood/gen/1-5_2.png" title="1-5_2.png">
+<img src="ood/gen/1-7_1.png" title="1-7_1.png">
+<img src="ood/gen/1-7_2.png" title="1-7_2.png">
+<img src="ood/gen/1-9_1.png" title="1-9_1.png">
+<img src="ood/gen/1-9_2.png" title="1-9_2.png">
+<img src="ood/gen/13-7_1.png" title="13-7_1.png">
+<img src="ood/gen/13-7_2.png" title="13-7_2.png">
+<img src="ood/gen/19-1_1.png" title="19-1_1.png">
+<img src="ood/gen/19-1_2.png" title="19-1_2.png">
+<img src="ood/gen/2-3_1.png" title="2-3_1.png">
+<img src="ood/gen/2-3_2.png" title="2-3_2.png">
+<img src="ood/gen/3-1_1.png" title="3-1_1.png">
+<img src="ood/gen/3-1_2.png" title="3-1_2.png">
+<img src="ood/gen/3-2_1.png" title="3-2_1.png">
+<img src="ood/gen/3-2_2.png" title="3-2_2.png">
+<img src="ood/gen/3-5_1.png" title="3-5_1.png">
+<img src="ood/gen/3-5_2.png" title="3-5_2.png">
+<img src="ood/gen/3-7_1.png" title="3-7_1.png">
+<img src="ood/gen/3-7_2.png" title="3-7_2.png">
+<img src="ood/gen/4-1_1.png" title="4-1_1.png">
+<img src="ood/gen/4-1_2.png" title="4-1_2.png">
+<img src="ood/gen/4-5_1.png" title="4-5_1.png">
+<img src="ood/gen/4-5_2.png" title="4-5_2.png">
+<img src="ood/gen/49-1_1.png" title="49-1_1.png">
+<img src="ood/gen/49-1_2.png" title="49-1_2.png">
+<img src="ood/gen/5-1_1.png" title="5-1_1.png">
+<img src="ood/gen/5-1_2.png" title="5-1_2.png">
+<img src="ood/gen/5-3_1.png" title="5-3_1.png">
+<img src="ood/gen/5-3_2.png" title="5-3_2.png">
+<img src="ood/gen/5-4_1.png" title="5-4_1.png">
+<img src="ood/gen/5-4_2.png" title="5-4_2.png">
+<img src="ood/gen/7-1_1.png" title="7-1_1.png">
+<img src="ood/gen/7-1_2.png" title="7-1_2.png">
+<img src="ood/gen/7-13_1.png" title="7-13_1.png">
+<img src="ood/gen/7-13_2.png" title="7-13_2.png">
+<img src="ood/gen/7-3_1.png" title="7-3_1.png">
+<img src="ood/gen/7-3_2.png" title="7-3_2.png">
+<img src="ood/gen/7-8_1.png" title="7-8_1.png">
+<img src="ood/gen/7-8_2.png" title="7-8_2.png">
+<img src="ood/gen/8-7_1.png" title="8-7_1.png">
+<img src="ood/gen/8-7_2.png" title="8-7_2.png">
+<img src="ood/gen/9-1_1.png" title="9-1_1.png">
+<img src="ood/gen/9-1_2.png" title="9-1_2.png">
+</div>
+<h2>Reading it</h2>
+<div class="note">
+<b>In-domain is genuinely good:</b> realism (0.314) is only 1.36× the real-vs-real baseline (0.232) and diversity is healthy — the model makes replicate-quality images and doesn't mode-collapse.<br><br>
+<b>OOD confirms the open problem:</b> a novel species blows up FID 4.7× and pushes realism to 2.26× the baseline. The mechanism (see images): ControlNet conditioning fails OOD — the model leans on its learned prior instead of the input.<br><br>
+<b>Caveat:</b> KL shifts species + imaging modality (fluorescence) + morphology all at once, so this shows <i>that</i> it breaks on a genuinely novel input, not <i>which</i> single factor causes it. A brightfield-but-different-species set would isolate the species variable.
+</div>
+</body></html>

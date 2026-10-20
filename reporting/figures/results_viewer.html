@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>reptorep augmenter — training results (job 52034860)</title>
+<style>
+  :root { color-scheme: dark; }
+  body { background:#0e0f12; color:#e6e6e6; font:15px/1.5 -apple-system,Segoe UI,Roboto,sans-serif; margin:0; padding:32px 40px 80px; }
+  h1 { font-size:22px; margin:0 0 4px; }
+  h2 { font-size:17px; margin:36px 0 10px; border-bottom:1px solid #2a2c31; padding-bottom:6px; }
+  .sub { color:#9aa0a6; margin:0 0 8px; }
+  .note { background:#16181d; border:1px solid #2a2c31; border-radius:8px; padding:12px 16px; margin:14px 0; color:#c9cdd3; }
+  .row { display:flex; gap:14px; flex-wrap:wrap; align-items:flex-start; }
+  figure { margin:0; }
+  figure img { display:block; width:520px; max-width:90vw; border-radius:6px; border:1px solid #2a2c31; }
+  figcaption { color:#9aa0a6; font-size:13px; margin-top:6px; }
+  .strip figure img { width:300px; }
+  .tag { display:inline-block; font-size:12px; padding:2px 8px; border-radius:20px; background:#1f2937; color:#93c5fd; margin-left:8px; }
+  code { background:#1a1c21; padding:1px 5px; border-radius:4px; font-size:13px; }
+  b.good { color:#86efac; }
+</style>
+</head>
+<body>
+  <h1>Replicate-to-replicate augmenter — training results <span class="tag">job 52034860 · COMPLETED</span></h1>
+  <p class="sub">5 epochs · 375,749 steps · 3d 2h on 1× A5000 · checkpoint <code>epoch=4-step=375749.ckpt</code> (8.6 GB)</p>
+
+  <div class="note">
+    Each image is one row of the <b>5 fixed eval samples</b> logged every 300 steps during training.
+    These 5 are the first records of the training JSON, so this shows <b>in-distribution fit</b> (how well it learned the training data),
+    <i>not</i> generalization to unseen species — that needs the held-out inference run.
+    <br><br>
+    Rows below: <b>control</b> = source replicate (ControlNet input) · <b>reconstruction</b> = target replicate (what it should match) · <b>samples</b> = what the model generated.
+  </div>
+
+  <h2>1 · Learning progression (generated samples over training)</h2>
+  <p class="sub">Watch structure emerge: noise → blobs → clean dendritic branching colonies.</p>
+  <div class="row strip">
+    <figure><img src="eval_grids/0000300_samples_cfg_scale_9.00.png"><figcaption>step 300 (≈0% ) — noise</figcaption></figure>
+    <figure><img src="eval_grids/0003000_samples_cfg_scale_9.00.png"><figcaption>step 3,000 (≈4%)</figcaption></figure>
+    <figure><img src="eval_grids/0060000_samples_cfg_scale_9.00.png"><figcaption>step 60,000 (≈16%)</figcaption></figure>
+    <figure><img src="eval_grids/0180000_samples_cfg_scale_9.00.png"><figcaption>step 180,000 (≈48%)</figcaption></figure>
+    <figure><img src="eval_grids/0300000_samples_cfg_scale_9.00.png"><figcaption>step 300,000 (≈80%)</figcaption></figure>
+    <figure><img src="eval_grids/0375600_samples_cfg_scale_9.00.png"><figcaption>step 375,600 (final) — <b class="good">crisp branches</b></figcaption></figure>
+  </div>
+
+  <h2>2 · Final quality — generated vs. ground truth (step 375,600)</h2>
+  <p class="sub">Compare the generated row to the reconstruction (target) row: same morphology family, realistic branching, correct dish framing. It generates a <i>plausible new replicate</i>, not a pixel copy.</p>
+  <div class="row">
+    <figure><img src="eval_grids/0375600_control.png"><figcaption>control — source replicate (input)</figcaption></figure>
+    <figure><img src="eval_grids/0375600_reconstruction.png"><figcaption>reconstruction — target replicate (ground truth)</figcaption></figure>
+    <figure><img src="eval_grids/0375600_samples_cfg_scale_9.00.png"><figcaption>samples — <b class="good">model output</b></figcaption></figure>
+  </div>
+
+  <h2>3 · Before (step 300) for contrast</h2>
+  <div class="row">
+    <figure><img src="eval_grids/0000300_control.png"><figcaption>control (input) — same 5 fixed samples</figcaption></figure>
+    <figure><img src="eval_grids/0000300_reconstruction.png"><figcaption>reconstruction (target)</figcaption></figure>
+    <figure><img src="eval_grids/0000300_samples_cfg_scale_9.00.png"><figcaption>samples — untrained noise</figcaption></figure>
+  </div>
+</body>
+</html>

@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<title>Augmenter — progress update</title>
+<style>
+  :root{color-scheme:dark}
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-snap-type:y mandatory;scroll-behavior:smooth}
+  body{background:#0b0c0f;color:#e9eaec;font:16px/1.5 -apple-system,Segoe UI,Roboto,sans-serif}
+  section{min-height:100vh;scroll-snap-align:start;display:flex;flex-direction:column;justify-content:center;
+          padding:6vh 8vw;position:relative}
+  .kicker{color:#7dd3fc;font-size:14px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;margin-bottom:12px}
+  h1{font-size:44px;line-height:1.1;margin-bottom:14px}
+  h2{font-size:30px;line-height:1.15;margin-bottom:18px}
+  .lead{font-size:19px;color:#c4c8cf;max-width:60ch;margin-bottom:22px}
+  .row{display:flex;gap:22px;flex-wrap:wrap;align-items:flex-start;margin:8px 0 18px}
+  figure{margin:0}
+  figure img{display:block;border-radius:8px;border:1px solid #2a2d34;background:#000}
+  .triple img{width:min(27vw,300px);height:min(27vw,300px)}
+  .strip img{width:min(46vw,560px)}
+  figcaption{color:#9aa0a6;font-size:13px;margin-top:8px;text-align:center}
+  .stats{display:flex;gap:26px;flex-wrap:wrap;margin-top:6px}
+  .stat{background:#14161b;border:1px solid #2a2d34;border-radius:10px;padding:14px 20px;min-width:150px}
+  .stat b{display:block;font-size:28px}
+  .stat span{color:#9aa0a6;font-size:13px}
+  .good{color:#86efac}.bad{color:#fca5a5}
+  ul{max-width:64ch;margin-left:20px}li{margin:7px 0;color:#d3d7de}
+  .note{background:#1b1408;border:1px solid #b4770f;border-radius:10px;padding:14px 18px;margin-top:20px;color:#fcd9a3;max-width:70ch}
+  .foot{position:absolute;bottom:3vh;left:8vw;right:8vw;display:flex;justify-content:space-between;color:#6b7178;font-size:13px}
+  .arrow{width:10px;height:10px;border-right:2px solid #7dd3fc;border-bottom:2px solid #7dd3fc;transform:rotate(45deg);display:inline-block;margin-left:6px;animation:b 1.4s infinite}
+  @keyframes b{0%,100%{opacity:.3}50%{opacity:1}}
+</style></head>
+<body>
+
+<!-- 1 -->
+<section>
+  <div class="kicker">You Lab · Data-Augmentation project</div>
+  <h1>Generative augmenter for<br>bacterial-colony replicates</h1>
+  <p class="lead">A replicate-to-replicate ControlNet + Stable Diffusion model: give it one photo of a colony, it generates realistic new replicates — synthetic training data to beat experimental data scarcity.</p>
+  <div class="row strip">
+    <figure><img src="eval_grids/0000300_samples_cfg_scale_9.00.png"><figcaption>start of training — noise</figcaption></figure>
+    <figure><img src="eval_grids/0375600_samples_cfg_scale_9.00.png"><figcaption>end — realistic P. aeruginosa branching</figcaption></figure>
+  </div>
+  <p class="lead">Trained the model from scratch on the full 3-dataset set (3 days, 375k steps) → my own checkpoint. It learned the distribution.</p>
+  <div class="foot"><span>Sarthak · progress update</span><span>next <span class="arrow"></span></span></div>
+</section>
+
+<!-- 2 -->
+<section>
+  <div class="kicker">Result 1</div>
+  <h2>It works within its training domain</h2>
+  <div class="row triple">
+    <figure><img src="refs_png/196_1.png"><figcaption>real source (input)</figcaption></figure>
+    <figure><img src="inference/v2026816_1029_REPTOREP/196_1.png"><figcaption>generated replicate</figcaption></figure>
+    <figure><img src="refs_png/196_2.png"><figcaption>real sibling (ground truth)</figcaption></figure>
+  </div>
+  <p class="lead">On held-out test colonies it generates plausible new replicates — varied, not memorized.</p>
+  <div class="stats">
+    <div class="stat"><b>0.31</b><span>generated vs real replicate (LPIPS)</span></div>
+    <div class="stat"><b>0.23</b><span>real vs real baseline — so ≈1.3× (near replicate-quality)</span></div>
+    <div class="stat"><b class="good">0.25</b><span>sample diversity — not mode-collapsed</span></div>
+  </div>
+  <div class="foot"><span>in-domain</span><span>next <span class="arrow"></span></span></div>
+</section>
+
+<!-- 3 -->
+<section>
+  <div class="kicker">Result 2 · the key finding</div>
+  <h2>But it fails on a new species (out-of-distribution)</h2>
+  <div class="row triple">
+    <figure><img src="ood/refs_png/1-1_1.png"><figcaption>real source — 2-species co-culture</figcaption></figure>
+    <figure><img src="ood/gen/1-1_1.png"><figcaption>generated — wrong</figcaption></figure>
+    <figure><img src="ood/refs_png/1-1_2.png"><figcaption>real sibling (ground truth)</figcaption></figure>
+  </div>
+  <p class="lead">On a genuinely novel species it ignores the input and imposes its trained branching pattern — strips the fluorescence, hallucinates tendrils. Now <b>quantified</b>:</p>
+  <div class="stats">
+    <div class="stat"><b class="bad">74 → 346</b><span>FID (realism) — 4.7× worse</span></div>
+    <div class="stat"><b class="bad">1.3× → 2.3×</b><span>realism vs real-replicate baseline</span></div>
+  </div>
+  <div class="foot"><span>out-of-distribution</span><span>next <span class="arrow"></span></span></div>
+</section>
+
+<!-- 4 -->
+<section>
+  <div class="kicker">In progress · next steps</div>
+  <h2>Fine-tuning on the new data to close the gap</h2>
+  <ul>
+    <li>Carved a clean <b>held-out test split</b> from the 2-species data (no leakage) so we can measure improvement honestly.</li>
+    <li>Built the <b>fine-tune + auto-scoring pipeline</b> (resumes from our model; sweeps learning rate; one checkpoint per epoch).</li>
+    <li>Ran the first fine-tune — trained all 4 epochs; <b>3 checkpoints salvaged</b>.</li>
+    <li><b>Next:</b> score fine-tuned vs baseline on the held-out set → does it fix the OOD failure? Then sweep LR / epochs for the optimal schedule.</li>
+  </ul>
+  <div class="note">⚠️ <b>Heads-up:</b> the lab's group space (<b>/hpc/group/youlab, 46 TB</b>) is <b>100% full</b> — that's what killed the checkpoint save, and it will break large writes for everyone in the lab. Worth freeing space or requesting more.</div>
+  <div class="foot"><span>thank you</span><span>end</span></div>
+</section>
+
+<script>
+  const secs=[...document.querySelectorAll('section')];
+  let i=0;
+  const go=n=>{i=Math.max(0,Math.min(secs.length-1,n));secs[i].scrollIntoView()};
+  addEventListener('keydown',e=>{
+    if(['ArrowRight','ArrowDown',' ','PageDown'].includes(e.key)){e.preventDefault();go(i+1)}
+    if(['ArrowLeft','ArrowUp','PageUp'].includes(e.key)){e.preventDefault();go(i-1)}
+  });
+  // keep i in sync if they scroll manually
+  addEventListener('scroll',()=>{i=Math.round(scrollY/innerHeight)},{passive:true});
+</script>
+</body></html>

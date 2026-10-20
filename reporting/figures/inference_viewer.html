@@ -1,0 +1,268 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8">
+<title>reptorep augmenter — inference on held-out test set</title>
+<style>
+:root{color-scheme:dark}
+body{background:#0e0f12;color:#e6e6e6;font:15px/1.5 -apple-system,Segoe UI,Roboto,sans-serif;margin:0;padding:32px 40px 80px}
+h1{font-size:22px;margin:0 0 4px}h2{font-size:17px;margin:34px 0 8px;border-bottom:1px solid #2a2c31;padding-bottom:6px}
+h3{font-size:15px;color:#93c5fd;margin:22px 0 8px}
+.sub{color:#9aa0a6;margin:0 0 8px}
+.note{background:#16181d;border:1px solid #2a2c31;border-radius:8px;padding:12px 16px;margin:14px 0;color:#c9cdd3}
+.grid{display:grid;grid-template-columns:70px repeat(4,190px);gap:8px 12px;align-items:center;margin-bottom:10px}
+.grid img{width:190px;height:190px;border-radius:6px;border:1px solid #2a2c31;display:block}
+.grid .hd{color:#9aa0a6;font-size:12px;font-weight:600}
+.grid .rowlbl{color:#e6e6e6;font-size:14px;text-align:right;padding-right:2px}
+.gallery{display:flex;flex-wrap:wrap;gap:6px}
+.gallery img{width:110px;height:110px;border-radius:4px;border:1px solid #23252b}
+b.good{color:#86efac}
+code{background:#1a1c21;padding:1px 5px;border-radius:4px;font-size:13px}
+</style></head><body>
+<h1>Inference on the held-out test set <span style="color:#9aa0a6;font-size:14px">· job 52422938 · 83 conditions × 2 samples</span></h1>
+<p class="sub">Each row: the real <b>source</b> replicate the model saw → the <b>two replicates it generated</b> → a <b>real sibling</b> replicate (ground-truth "another real replicate of this condition"). None of these were in training.</p>
+<div class="note">
+<b>What to look for:</b> (1) do <b>Generated #1</b> and <b>#2</b> look like plausible real replicates (compare to the Real sibling)? (2) do they <b>differ from each other</b> (diversity, not mode-collapse)? (3) does the model <b>adapt to the source</b> — full branching for branching colonies, compact for compact ones — rather than forcing one pattern?<br><br>
+<b>My read:</b> On branching P. aeruginosa (Final set, e.g. 196) it generates full, realistic dendritic replicates that match the real sibling, and the two samples differ. On WT/mutant strains it captures the radial sunburst (sometimes a touch denser than real). On Emrah's compact Pa/Kp colonies (e.g. 126) it correctly makes a compact dot instead of hallucinating branches. Strong on this held-out set — which is the <i>same broad domain</i> as training; a truly out-of-distribution species is still the open test. Quantify with the metrics job (bottom).
+</div>
+<h2>Side-by-side comparisons</h2>
+<h3>Final Test set — branching P. aeruginosa</h3>
+<div class="grid">
+<div class="hd"></div><div class="hd">Source (input)</div><div class="hd">Generated #1</div><div class="hd">Generated #2</div><div class="hd">Real sibling</div>
+<div class="rowlbl">196</div>
+<img src="refs_png/196_1.png">
+<img src="inference/v2026816_1029_REPTOREP/196_1.png">
+<img src="inference/v2026816_1029_REPTOREP/196_2.png">
+<img src="refs_png/196_2.png">
+<div class="rowlbl">205</div>
+<img src="refs_png/205_1.png">
+<img src="inference/v2026816_1029_REPTOREP/205_1.png">
+<img src="inference/v2026816_1029_REPTOREP/205_2.png">
+<img src="refs_png/205_2.png">
+<div class="rowlbl">221</div>
+<img src="refs_png/221_1.png">
+<img src="inference/v2026816_1029_REPTOREP/221_1.png">
+<img src="inference/v2026816_1029_REPTOREP/221_2.png">
+<img src="refs_png/221_2.png">
+<div class="rowlbl">240</div>
+<img src="refs_png/240_1.png">
+<img src="inference/v2026816_1029_REPTOREP/240_1.png">
+<img src="inference/v2026816_1029_REPTOREP/240_2.png">
+<img src="refs_png/240_2.png">
+</div>
+<h3>KuiZhu library — numbered strains + WT / mutants</h3>
+<div class="grid">
+<div class="hd"></div><div class="hd">Source (input)</div><div class="hd">Generated #1</div><div class="hd">Generated #2</div><div class="hd">Real sibling</div>
+<div class="rowlbl">86</div>
+<img src="refs_png/86_1.png">
+<img src="inference/v2026816_1029_REPTOREP/86_1.png">
+<img src="inference/v2026816_1029_REPTOREP/86_2.png">
+<img src="refs_png/86_2.png">
+<div class="rowlbl">100</div>
+<img src="refs_png/100_1.png">
+<img src="inference/v2026816_1029_REPTOREP/100_1.png">
+<img src="inference/v2026816_1029_REPTOREP/100_2.png">
+<img src="refs_png/100_2.png">
+<div class="rowlbl">WT</div>
+<img src="refs_png/WT_1.png">
+<img src="inference/v2026816_1029_REPTOREP/WT_1.png">
+<img src="inference/v2026816_1029_REPTOREP/WT_2.png">
+<img src="refs_png/WT_2.png">
+<div class="rowlbl">dphz</div>
+<img src="refs_png/dphz_1.png">
+<img src="inference/v2026816_1029_REPTOREP/dphz_1.png">
+<img src="inference/v2026816_1029_REPTOREP/dphz_2.png">
+<img src="refs_png/dphz_2.png">
+<div class="rowlbl">dSoxR</div>
+<img src="refs_png/dSoxR_1.png">
+<img src="inference/v2026816_1029_REPTOREP/dSoxR_1.png">
+<img src="inference/v2026816_1029_REPTOREP/dSoxR_2.png">
+<img src="refs_png/dSoxR_2.png">
+</div>
+<h3>Emrah — Pa / Kp dataset (compact colonies)</h3>
+<div class="grid">
+<div class="hd"></div><div class="hd">Source (input)</div><div class="hd">Generated #1</div><div class="hd">Generated #2</div><div class="hd">Real sibling</div>
+<div class="rowlbl">126</div>
+<img src="refs_png/126_1.png">
+<img src="inference/v2026816_1029_REPTOREP/126_1.png">
+<img src="inference/v2026816_1029_REPTOREP/126_2.png">
+<img src="refs_png/126_2.png">
+<div class="rowlbl">135</div>
+<img src="refs_png/135_1.png">
+<img src="inference/v2026816_1029_REPTOREP/135_1.png">
+<img src="inference/v2026816_1029_REPTOREP/135_2.png">
+<img src="refs_png/135_2.png">
+<div class="rowlbl">145</div>
+<img src="refs_png/145_1.png">
+<img src="inference/v2026816_1029_REPTOREP/145_1.png">
+<img src="inference/v2026816_1029_REPTOREP/145_2.png">
+<img src="refs_png/145_2.png">
+</div>
+<h2>All generated images (browse all 164)</h2>
+<p class="sub">Two samples per condition, named <code>&lt;prefix&gt;_1.png</code> / <code>_2.png</code>. Hover for the filename.</p>
+<div class="gallery">
+<img src="inference/v2026816_1029_REPTOREP/100_1.png" title="100_1.png">
+<img src="inference/v2026816_1029_REPTOREP/100_2.png" title="100_2.png">
+<img src="inference/v2026816_1029_REPTOREP/126_1.png" title="126_1.png">
+<img src="inference/v2026816_1029_REPTOREP/126_2.png" title="126_2.png">
+<img src="inference/v2026816_1029_REPTOREP/127_1.png" title="127_1.png">
+<img src="inference/v2026816_1029_REPTOREP/127_2.png" title="127_2.png">
+<img src="inference/v2026816_1029_REPTOREP/128_1.png" title="128_1.png">
+<img src="inference/v2026816_1029_REPTOREP/128_2.png" title="128_2.png">
+<img src="inference/v2026816_1029_REPTOREP/129_1.png" title="129_1.png">
+<img src="inference/v2026816_1029_REPTOREP/129_2.png" title="129_2.png">
+<img src="inference/v2026816_1029_REPTOREP/130_1.png" title="130_1.png">
+<img src="inference/v2026816_1029_REPTOREP/130_2.png" title="130_2.png">
+<img src="inference/v2026816_1029_REPTOREP/131_1.png" title="131_1.png">
+<img src="inference/v2026816_1029_REPTOREP/131_2.png" title="131_2.png">
+<img src="inference/v2026816_1029_REPTOREP/132_1.png" title="132_1.png">
+<img src="inference/v2026816_1029_REPTOREP/132_2.png" title="132_2.png">
+<img src="inference/v2026816_1029_REPTOREP/133_1.png" title="133_1.png">
+<img src="inference/v2026816_1029_REPTOREP/133_2.png" title="133_2.png">
+<img src="inference/v2026816_1029_REPTOREP/134_1.png" title="134_1.png">
+<img src="inference/v2026816_1029_REPTOREP/134_2.png" title="134_2.png">
+<img src="inference/v2026816_1029_REPTOREP/135_1.png" title="135_1.png">
+<img src="inference/v2026816_1029_REPTOREP/135_2.png" title="135_2.png">
+<img src="inference/v2026816_1029_REPTOREP/136_1.png" title="136_1.png">
+<img src="inference/v2026816_1029_REPTOREP/136_2.png" title="136_2.png">
+<img src="inference/v2026816_1029_REPTOREP/137_1.png" title="137_1.png">
+<img src="inference/v2026816_1029_REPTOREP/137_2.png" title="137_2.png">
+<img src="inference/v2026816_1029_REPTOREP/138_1.png" title="138_1.png">
+<img src="inference/v2026816_1029_REPTOREP/138_2.png" title="138_2.png">
+<img src="inference/v2026816_1029_REPTOREP/139_1.png" title="139_1.png">
+<img src="inference/v2026816_1029_REPTOREP/139_2.png" title="139_2.png">
+<img src="inference/v2026816_1029_REPTOREP/140_1.png" title="140_1.png">
+<img src="inference/v2026816_1029_REPTOREP/140_2.png" title="140_2.png">
+<img src="inference/v2026816_1029_REPTOREP/141_1.png" title="141_1.png">
+<img src="inference/v2026816_1029_REPTOREP/141_2.png" title="141_2.png">
+<img src="inference/v2026816_1029_REPTOREP/142_1.png" title="142_1.png">
+<img src="inference/v2026816_1029_REPTOREP/142_2.png" title="142_2.png">
+<img src="inference/v2026816_1029_REPTOREP/143_1.png" title="143_1.png">
+<img src="inference/v2026816_1029_REPTOREP/143_2.png" title="143_2.png">
+<img src="inference/v2026816_1029_REPTOREP/144_1.png" title="144_1.png">
+<img src="inference/v2026816_1029_REPTOREP/144_2.png" title="144_2.png">
+<img src="inference/v2026816_1029_REPTOREP/145_1.png" title="145_1.png">
+<img src="inference/v2026816_1029_REPTOREP/145_2.png" title="145_2.png">
+<img src="inference/v2026816_1029_REPTOREP/146_1.png" title="146_1.png">
+<img src="inference/v2026816_1029_REPTOREP/146_2.png" title="146_2.png">
+<img src="inference/v2026816_1029_REPTOREP/196_1.png" title="196_1.png">
+<img src="inference/v2026816_1029_REPTOREP/196_2.png" title="196_2.png">
+<img src="inference/v2026816_1029_REPTOREP/197_1.png" title="197_1.png">
+<img src="inference/v2026816_1029_REPTOREP/197_2.png" title="197_2.png">
+<img src="inference/v2026816_1029_REPTOREP/198_1.png" title="198_1.png">
+<img src="inference/v2026816_1029_REPTOREP/198_2.png" title="198_2.png">
+<img src="inference/v2026816_1029_REPTOREP/199_1.png" title="199_1.png">
+<img src="inference/v2026816_1029_REPTOREP/199_2.png" title="199_2.png">
+<img src="inference/v2026816_1029_REPTOREP/200_1.png" title="200_1.png">
+<img src="inference/v2026816_1029_REPTOREP/200_2.png" title="200_2.png">
+<img src="inference/v2026816_1029_REPTOREP/201_1.png" title="201_1.png">
+<img src="inference/v2026816_1029_REPTOREP/201_2.png" title="201_2.png">
+<img src="inference/v2026816_1029_REPTOREP/202_1.png" title="202_1.png">
+<img src="inference/v2026816_1029_REPTOREP/202_2.png" title="202_2.png">
+<img src="inference/v2026816_1029_REPTOREP/203_1.png" title="203_1.png">
+<img src="inference/v2026816_1029_REPTOREP/203_2.png" title="203_2.png">
+<img src="inference/v2026816_1029_REPTOREP/204_1.png" title="204_1.png">
+<img src="inference/v2026816_1029_REPTOREP/204_2.png" title="204_2.png">
+<img src="inference/v2026816_1029_REPTOREP/205_1.png" title="205_1.png">
+<img src="inference/v2026816_1029_REPTOREP/205_2.png" title="205_2.png">
+<img src="inference/v2026816_1029_REPTOREP/207_1.png" title="207_1.png">
+<img src="inference/v2026816_1029_REPTOREP/207_2.png" title="207_2.png">
+<img src="inference/v2026816_1029_REPTOREP/208_1.png" title="208_1.png">
+<img src="inference/v2026816_1029_REPTOREP/208_2.png" title="208_2.png">
+<img src="inference/v2026816_1029_REPTOREP/210_1.png" title="210_1.png">
+<img src="inference/v2026816_1029_REPTOREP/210_2.png" title="210_2.png">
+<img src="inference/v2026816_1029_REPTOREP/211_1.png" title="211_1.png">
+<img src="inference/v2026816_1029_REPTOREP/211_2.png" title="211_2.png">
+<img src="inference/v2026816_1029_REPTOREP/212_1.png" title="212_1.png">
+<img src="inference/v2026816_1029_REPTOREP/212_2.png" title="212_2.png">
+<img src="inference/v2026816_1029_REPTOREP/214_1.png" title="214_1.png">
+<img src="inference/v2026816_1029_REPTOREP/214_2.png" title="214_2.png">
+<img src="inference/v2026816_1029_REPTOREP/215_1.png" title="215_1.png">
+<img src="inference/v2026816_1029_REPTOREP/215_2.png" title="215_2.png">
+<img src="inference/v2026816_1029_REPTOREP/217_1.png" title="217_1.png">
+<img src="inference/v2026816_1029_REPTOREP/217_2.png" title="217_2.png">
+<img src="inference/v2026816_1029_REPTOREP/218_1.png" title="218_1.png">
+<img src="inference/v2026816_1029_REPTOREP/218_2.png" title="218_2.png">
+<img src="inference/v2026816_1029_REPTOREP/221_1.png" title="221_1.png">
+<img src="inference/v2026816_1029_REPTOREP/221_2.png" title="221_2.png">
+<img src="inference/v2026816_1029_REPTOREP/222_1.png" title="222_1.png">
+<img src="inference/v2026816_1029_REPTOREP/222_2.png" title="222_2.png">
+<img src="inference/v2026816_1029_REPTOREP/223_1.png" title="223_1.png">
+<img src="inference/v2026816_1029_REPTOREP/223_2.png" title="223_2.png">
+<img src="inference/v2026816_1029_REPTOREP/224_1.png" title="224_1.png">
+<img src="inference/v2026816_1029_REPTOREP/224_2.png" title="224_2.png">
+<img src="inference/v2026816_1029_REPTOREP/226_1.png" title="226_1.png">
+<img src="inference/v2026816_1029_REPTOREP/226_2.png" title="226_2.png">
+<img src="inference/v2026816_1029_REPTOREP/227_1.png" title="227_1.png">
+<img src="inference/v2026816_1029_REPTOREP/227_2.png" title="227_2.png">
+<img src="inference/v2026816_1029_REPTOREP/228_1.png" title="228_1.png">
+<img src="inference/v2026816_1029_REPTOREP/228_2.png" title="228_2.png">
+<img src="inference/v2026816_1029_REPTOREP/229_1.png" title="229_1.png">
+<img src="inference/v2026816_1029_REPTOREP/229_2.png" title="229_2.png">
+<img src="inference/v2026816_1029_REPTOREP/230_1.png" title="230_1.png">
+<img src="inference/v2026816_1029_REPTOREP/230_2.png" title="230_2.png">
+<img src="inference/v2026816_1029_REPTOREP/231_1.png" title="231_1.png">
+<img src="inference/v2026816_1029_REPTOREP/231_2.png" title="231_2.png">
+<img src="inference/v2026816_1029_REPTOREP/232_1.png" title="232_1.png">
+<img src="inference/v2026816_1029_REPTOREP/232_2.png" title="232_2.png">
+<img src="inference/v2026816_1029_REPTOREP/233_1.png" title="233_1.png">
+<img src="inference/v2026816_1029_REPTOREP/233_2.png" title="233_2.png">
+<img src="inference/v2026816_1029_REPTOREP/234_1.png" title="234_1.png">
+<img src="inference/v2026816_1029_REPTOREP/234_2.png" title="234_2.png">
+<img src="inference/v2026816_1029_REPTOREP/235_1.png" title="235_1.png">
+<img src="inference/v2026816_1029_REPTOREP/235_2.png" title="235_2.png">
+<img src="inference/v2026816_1029_REPTOREP/236_1.png" title="236_1.png">
+<img src="inference/v2026816_1029_REPTOREP/236_2.png" title="236_2.png">
+<img src="inference/v2026816_1029_REPTOREP/237_1.png" title="237_1.png">
+<img src="inference/v2026816_1029_REPTOREP/237_2.png" title="237_2.png">
+<img src="inference/v2026816_1029_REPTOREP/238_1.png" title="238_1.png">
+<img src="inference/v2026816_1029_REPTOREP/238_2.png" title="238_2.png">
+<img src="inference/v2026816_1029_REPTOREP/240_1.png" title="240_1.png">
+<img src="inference/v2026816_1029_REPTOREP/240_2.png" title="240_2.png">
+<img src="inference/v2026816_1029_REPTOREP/241_1.png" title="241_1.png">
+<img src="inference/v2026816_1029_REPTOREP/241_2.png" title="241_2.png">
+<img src="inference/v2026816_1029_REPTOREP/242_1.png" title="242_1.png">
+<img src="inference/v2026816_1029_REPTOREP/242_2.png" title="242_2.png">
+<img src="inference/v2026816_1029_REPTOREP/243_1.png" title="243_1.png">
+<img src="inference/v2026816_1029_REPTOREP/243_2.png" title="243_2.png">
+<img src="inference/v2026816_1029_REPTOREP/244_1.png" title="244_1.png">
+<img src="inference/v2026816_1029_REPTOREP/244_2.png" title="244_2.png">
+<img src="inference/v2026816_1029_REPTOREP/245_1.png" title="245_1.png">
+<img src="inference/v2026816_1029_REPTOREP/245_2.png" title="245_2.png">
+<img src="inference/v2026816_1029_REPTOREP/246_1.png" title="246_1.png">
+<img src="inference/v2026816_1029_REPTOREP/246_2.png" title="246_2.png">
+<img src="inference/v2026816_1029_REPTOREP/247_1.png" title="247_1.png">
+<img src="inference/v2026816_1029_REPTOREP/247_2.png" title="247_2.png">
+<img src="inference/v2026816_1029_REPTOREP/248_1.png" title="248_1.png">
+<img src="inference/v2026816_1029_REPTOREP/248_2.png" title="248_2.png">
+<img src="inference/v2026816_1029_REPTOREP/249_1.png" title="249_1.png">
+<img src="inference/v2026816_1029_REPTOREP/249_2.png" title="249_2.png">
+<img src="inference/v2026816_1029_REPTOREP/250_1.png" title="250_1.png">
+<img src="inference/v2026816_1029_REPTOREP/250_2.png" title="250_2.png">
+<img src="inference/v2026816_1029_REPTOREP/251_1.png" title="251_1.png">
+<img src="inference/v2026816_1029_REPTOREP/251_2.png" title="251_2.png">
+<img src="inference/v2026816_1029_REPTOREP/86_1.png" title="86_1.png">
+<img src="inference/v2026816_1029_REPTOREP/86_2.png" title="86_2.png">
+<img src="inference/v2026816_1029_REPTOREP/87_1.png" title="87_1.png">
+<img src="inference/v2026816_1029_REPTOREP/87_2.png" title="87_2.png">
+<img src="inference/v2026816_1029_REPTOREP/88_1.png" title="88_1.png">
+<img src="inference/v2026816_1029_REPTOREP/88_2.png" title="88_2.png">
+<img src="inference/v2026816_1029_REPTOREP/89_1.png" title="89_1.png">
+<img src="inference/v2026816_1029_REPTOREP/89_2.png" title="89_2.png">
+<img src="inference/v2026816_1029_REPTOREP/90_1.png" title="90_1.png">
+<img src="inference/v2026816_1029_REPTOREP/90_2.png" title="90_2.png">
+<img src="inference/v2026816_1029_REPTOREP/91_1.png" title="91_1.png">
+<img src="inference/v2026816_1029_REPTOREP/91_2.png" title="91_2.png">
+<img src="inference/v2026816_1029_REPTOREP/92_1.png" title="92_1.png">
+<img src="inference/v2026816_1029_REPTOREP/92_2.png" title="92_2.png">
+<img src="inference/v2026816_1029_REPTOREP/93_1.png" title="93_1.png">
+<img src="inference/v2026816_1029_REPTOREP/93_2.png" title="93_2.png">
+<img src="inference/v2026816_1029_REPTOREP/94_1.png" title="94_1.png">
+<img src="inference/v2026816_1029_REPTOREP/94_2.png" title="94_2.png">
+<img src="inference/v2026816_1029_REPTOREP/dphz_1.png" title="dphz_1.png">
+<img src="inference/v2026816_1029_REPTOREP/dphz_2.png" title="dphz_2.png">
+<img src="inference/v2026816_1029_REPTOREP/dSoxR_1.png" title="dSoxR_1.png">
+<img src="inference/v2026816_1029_REPTOREP/dSoxR_2.png" title="dSoxR_2.png">
+<img src="inference/v2026816_1029_REPTOREP/WT_1.png" title="WT_1.png">
+<img src="inference/v2026816_1029_REPTOREP/WT_2.png" title="WT_2.png">
+</div>
+<h2>Quantitative metrics — pending</h2>
+<div class="note">Run <code>sbatch Slurm_scripts/eval_metrics_sa603.sh</code> on the cluster to compute <b>FID</b> (realism), <b>diversity</b> (LPIPS between the two samples), and <b>realism-vs-sibling</b> (LPIPS to real replicates). Results land in <code>eval_metrics_results/metrics.json</code>.</div>
+</body></html>

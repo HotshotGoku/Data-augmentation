@@ -1,0 +1,117 @@
+{
+  "gen_dir": "/hpc/group/youlab/sa603/code/Data_augmentation/pixcell_eval_out/pixcell_ep30/gen",
+  "n_generated": 140,
+  "metrics_version": 2,
+  "overall": {
+    "FID": 153.86,
+    "CMMD": 5.777,
+    "diversity": {
+      "mean": 0.2588,
+      "std": 0.078,
+      "n": 70
+    },
+    "realism_vs_sibling": {
+      "mean": 0.3462,
+      "std": 0.0724,
+      "n": 694
+    },
+    "realism_vs_source": {
+      "mean": 0.3426,
+      "std": 0.061,
+      "n": 140
+    },
+    "baseline_real_vs_real": {
+      "mean": 0.2703,
+      "std": 0.0862,
+      "n": 420
+    },
+    "realism_nn_lpips_alex": {
+      "mean": 0.2872,
+      "std": 0.0661,
+      "n": 140
+    },
+    "realism_nn_lpips_vgg": {
+      "mean": 0.3651,
+      "std": 0.0412,
+      "n": 140
+    },
+    "realism_nn_ssim": {
+      "mean": 0.6314,
+      "std": 0.0464,
+      "n": 140
+    },
+    "realism_nn_orb": {
+      "mean": 0.0756,
+      "std": 0.0711,
+      "n": 140
+    },
+    "baseline_nn_real_vs_real": {
+      "mean": 0.2108,
+      "std": 0.0694,
+      "n": 417
+    },
+    "authenticity_gap": {
+      "mean": 0.0767,
+      "std": 0.0537,
+      "n": 140
+    },
+    "copy_rate": 0.0
+  },
+  "by_dataset": {
+    "MPLEX": {
+      "FID": 153.86,
+      "CMMD": 5.777,
+      "diversity": {
+        "mean": 0.2588,
+        "std": 0.078,
+        "n": 70
+      },
+      "realism_vs_sibling": {
+        "mean": 0.3462,
+        "std": 0.0724,
+        "n": 694
+      },
+      "realism_vs_source": {
+        "mean": 0.3426,
+        "std": 0.061,
+        "n": 140
+      },
+      "baseline_real_vs_real": {
+        "mean": 0.2703,
+        "std": 0.0862,
+        "n": 420
+      },
+      "realism_nn_lpips_alex": {
+        "mean": 0.2872,
+        "std": 0.0661,
+        "n": 140
+      },
+      "realism_nn_lpips_vgg": {
+        "mean": 0.3651,
+        "std": 0.0412,
+        "n": 140
+      },
+      "realism_nn_ssim": {
+        "mean": 0.6314,
+        "std": 0.0464,
+        "n": 140
+      },
+      "realism_nn_orb": {
+        "mean": 0.0756,
+        "std": 0.0711,
+        "n": 140
+      },
+      "baseline_nn_real_vs_real": {
+        "mean": 0.2108,
+        "std": 0.0694,
+        "n": 417
+      },
+      "authenticity_gap": {
+        "mean": 0.0767,
+        "std": 0.0537,
+        "n": 140
+      },
+      "copy_rate": 0.0
+    }
+  }
+}

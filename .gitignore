@@ -102,10 +102,6 @@ strength_sweep_out/
 # 2026-10-13: per-dataset synth output dirs (generated)
 *_synth_*/
 
-# relocated from model_results/ during repo reorg (regenerable figures; keep untracked)
-reporting/figures/bakeoff_compare/
-reporting/figures/multiplexed_ft_comparison.png
-reporting/figures/multiplexed_ft_montage_wide.png
 
 # committed deck deliverables (2026-10-20) — un-ignore .pptx under reporting/decks/
 !reporting/decks/
