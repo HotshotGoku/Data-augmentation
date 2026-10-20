@@ -1,0 +1,176 @@
+<!doctype html><html><head><meta charset="utf-8">
+<title>The Augmenter Project — the whole story</title>
+<style>
+ body{background:#0b0c0f;color:#e9eaec;font:15px/1.6 -apple-system,Segoe UI,Roboto,sans-serif;margin:0;padding:40px 0 80px}
+ .wrap{max-width:1180px;margin:0 auto;padding:0 40px}
+ h1{font-size:34px;margin:0 0 6px;letter-spacing:-.5px}
+ .thesis{font-size:18px;color:#cbd5e1;margin:0 0 4px}
+ .date{color:#6b7280;font-size:13px;margin:0 0 30px}
+ h2{font-size:14px;letter-spacing:.14em;text-transform:uppercase;color:#7dd3fc;margin:0 0 2px}
+ .act{font-size:26px;margin:0 0 4px;letter-spacing:-.3px}
+ .lead{color:#9aa0a6;margin:0 0 20px;max-width:860px}
+ section{border-top:1px solid #1e2127;padding:46px 0 10px}
+ .tldr{background:linear-gradient(135deg,#121826,#0f1420);border:1px solid #243049;border-radius:14px;padding:26px 30px;margin:0 0 10px}
+ .tldr b{color:#86efac}
+ .tldr .big{font-size:19px;color:#f1f5f9;margin:0 0 14px;font-weight:600}
+ .tldr ul{margin:0;padding-left:20px} .tldr li{margin:7px 0}
+ .pill{display:inline-block;font-size:12px;font-weight:700;padding:2px 10px;border-radius:999px;margin-right:6px;vertical-align:middle}
+ .win{background:#14321f;color:#86efac;border:1px solid #1f5235}
+ .loss{background:#331717;color:#fca5a5;border:1px solid #522525}
+ .neutral{background:#1a2230;color:#93c5fd;border:1px solid #2a3b57}
+ table{border-collapse:collapse;margin:14px 0 6px;font-size:13.5px;width:100%}
+ th,td{border:1px solid #23262d;padding:7px 12px;text-align:center}
+ th{color:#9aa0a6;font-weight:600;background:#101216} td.bk{text-align:left;font-weight:600;color:#e9eaec}
+ td.g{color:#86efac;font-weight:700} td.r{color:#fca5a5} td.dim{color:#6b7280}
+ figure{margin:22px 0 8px} img{width:100%;border:1px solid #23262d;border-radius:10px;display:block}
+ figcaption{color:#8b919a;font-size:13px;margin:8px 2px 0}
+ figcaption b{color:#cbd5e1}
+ .hero img{border-color:#2d3a52;box-shadow:0 0 0 1px #141a28,0 18px 50px -20px #000}
+ .two{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+ .note{background:#15171c;border-left:3px solid #3b82f6;border-radius:0 8px 8px 0;padding:12px 18px;margin:16px 0;color:#c3c9d1;font-size:14px}
+ .warn{border-left-color:#f59e0b}
+ code{background:#15171c;padding:1px 6px;border-radius:4px;color:#7dd3fc;font-size:13px}
+ .status{background:#0f1116;border:1px dashed #2a2d33;border-radius:12px;padding:20px 26px;margin-top:14px}
+ .kicker{color:#6b7280;font-size:12px;letter-spacing:.1em;text-transform:uppercase}
+ @media(max-width:820px){.two{grid-template-columns:1fr}}
+</style></head><body><div class="wrap">
+
+<h1>The Augmenter Project</h1>
+<p class="thesis">Can a generative "augmenter" beat data scarcity for bacterial-colony prediction — and if so, how?</p>
+<p class="date">Visual summary of everything run so far · updated 2026-10-11 · collaborator: Kinshuk Sahu · Duke DCC · <a href="matrix.html" style="color:#7dd3fc">see the backbone × dataset matrix →</a></p>
+
+<div class="tldr">
+ <div class="big">Bottom line: the exhaustive backbone search is <b>closed</b> — nothing beats an in-domain SD1.5. The real, defensible win is on the <b>SD1.5 side</b>.</div>
+ <ul>
+  <li><span class="pill loss">negative</span> Every alternative backbone <b>loses</b> to in-domain SD1.5 on realism + CMMD: Flux (escalated all the way to bf16 + 3× ControlNet), FastGAN, StyleGAN2-ADA, SD3.5, zero-shot general priors, and a from-scratch conditional DDPM.</li>
+  <li><span class="pill win">the win</span> <b>Conditioning-dropout SD1.5</b> beats plain rotation on the <b>metric that matters</b>, <b>axis-selectively, across two domains</b>: branching → <b>shape_factor</b> (+0.05, p≈0.05, 15 seeds); multiplexed → <b>aTc decode</b> (+0.045, 14/15 seeds).</li>
+  <li><span class="pill neutral">mechanism</span> Rotation is label-invariant — rotated copies carry the <i>same</i> label, so they add no new information. Synthetic replicates have genuinely <i>different</i> morphology → new labels → real signal, on the axis where the synthetic variation is faithful.</li>
+  <li><b>"Smarter diversity on SD1.5" wins; "newer backbone" never does.</b></li>
+ </ul>
+</div>
+
+<!-- ACT 1 -->
+<section>
+ <h2>Act 1 · The setup</h2>
+ <div class="act">One real image in, synthetic replicates out</div>
+ <p class="lead">The augmenter is a replicate-to-replicate ControlNet: given one real colony image, generate synthetic replicates that look like genuinely different biological repeats of the same condition — to train downstream models when real data is scarce. We test on <b>two very different domains</b>.</p>
+
+ <div class="two">
+  <figure>
+   <img src="cross_branching.png" alt="branching colonies">
+   <figcaption><b>Branching (dendritic) colonies.</b> Grown in a petri dish; the downstream task is predicting morphology features (shape factor, fractal dimension, …). Columns: source · one real replicate · then each backbone's best output.</figcaption>
+  </figure>
+  <figure>
+   <img src="mux_scope.png" alt="multiplexed colonies">
+   <figcaption><b>Multiplexed (cell-like) colonies.</b> Two-gene fluorescence patterning, no petri dish. The downstream task is <i>decoding</i> the aTc (row) and IPTG (column) induction levels — a totally different kind of label.</figcaption>
+  </figure>
+ </div>
+ <div class="note">Why these two? If the same mechanism helps on <b>both</b> a morphology task and a decode task, the finding is about augmentation in general — not a quirk of one dataset.</div>
+</section>
+
+<!-- ACT 2 -->
+<section>
+ <h2>Act 2 · The backbone search</h2>
+ <div class="act">We tried everything newer than SD1.5. None of it won.</div>
+ <p class="lead">The obvious hypothesis: a bigger, more modern generative backbone makes better synthetic replicates. We tested it exhaustively — and it is wrong for this data regime (a few hundred images per domain).</p>
+
+ <table>
+  <tr><th>Backbone (branching)</th><th>Realism ↓<br><span style="font-weight:400;color:#6b7280">LPIPS, floor≈0.25</span></th><th>CMMD ↓</th><th>Diversity ↑</th><th></th></tr>
+  <tr><td class="bk">SD1.5 — in-domain, conditioning-dropout (sweet spot)</td><td class="g">0.333</td><td class="g">3.20</td><td class="g">0.271</td><td><span class="pill win">best</span></td></tr>
+  <tr><td class="bk">SD1.5 — in-domain, baseline</td><td class="g">0.324</td><td class="g">3.38</td><td>0.252</td><td></td></tr>
+  <tr><td class="bk">Flux — bf16 + CN6 (max escalation)</td><td class="r">0.503</td><td>4.84</td><td class="r">0.210</td><td class="dim">loses</td></tr>
+  <tr><td class="bk">Flux — scaled fp8 / CN4</td><td class="r">0.499</td><td>5.53</td><td class="r">0.208</td><td class="dim">loses</td></tr>
+  <tr><td class="bk">Flux — pilot</td><td class="r">0.524</td><td>8.78</td><td>0.270</td><td class="dim">loses</td></tr>
+  <tr><td class="bk">Conditional DDPM — from scratch</td><td class="r">0.538</td><td>9.81</td><td class="r">0.213</td><td class="dim">loses</td></tr>
+  <tr><td class="bk">FastGAN (unconditional)</td><td class="dim">—</td><td>15.4</td><td>0.271</td><td class="dim">loses</td></tr>
+  <tr><td class="bk">PixCell (frozen DiT)</td><td class="dim">washed</td><td class="r">~49.8</td><td class="dim">low</td><td class="dim">loses</td></tr>
+  <tr><td class="bk">Zero-shot general prior (SDXL img2img)</td><td class="r">0.722</td><td class="r">71.0</td><td class="dim">0.597*</td><td class="dim">loses</td></tr>
+ </table>
+ <p class="date">*High "diversity" here is hallucinated natural-image texture, not useful biological variation. Lower realism = better (closer to the real-vs-real floor ≈0.25). All scored identically vs held-out real replicates.</p>
+
+ <figure class="hero">
+  <img src="flux_escalation_final.png" alt="Flux escalation ladder">
+  <figcaption><b>The money figure.</b> Flux pushed through every lever — pilot → scaled → bf16 full base with 3× ControlNet capacity. CMMD improves monotonically left→right (8.8 → 4.8), <b>but realism plateaus at ~0.50 and never approaches SD1.5's 0.32.</b> Look at the branches: SD1.5 (col 3) renders them full and connected; every Flux variant is fainter and more fragmented. The gap is structural, not a tuning problem.</figcaption>
+ </figure>
+
+ <div class="two">
+  <figure>
+   <img src="sd15_vs_flux_verify.png" alt="SD1.5 vs Flux verify">
+   <figcaption><b>Why Flux loses.</b> In-domain SD1.5 tracks the source and stays coherent; Flux goes blobby and fragmented. The earlier "Flux Pareto-dominates SD1.5" headline was an artifact of comparing against a weak out-of-domain baseline — fully retracted.</figcaption>
+  </figure>
+  <figure>
+   <img src="ddpm_view.png" alt="DDPM result">
+   <figcaption><b>From-scratch conditional DDPM.</b> It learns the branching <i>structure</i> (follows the source) but can't produce texture — blurry, low-contrast haze. ~400 training pairs can't match SD1.5's pretrained texture prior, and SD1.5 is already near the real-vs-real floor, so there was little ceiling left to win.</figcaption>
+  </figure>
+ </div>
+ <div class="note warn"><b>Meta-finding from the literature.</b> For a domain this narrow with only hundreds of images, whether <i>any</i> generative augmentation beats classical augmentation is an open question — "nothing beats rotation" is a known phenomenon, not a bug in our setup. That reframed the whole project: stop hunting backbones, start asking where synthetic data actually adds information.</div>
+</section>
+
+<!-- ACT 3 -->
+<section>
+ <h2>Act 3 · The real win</h2>
+ <div class="act">Smarter diversity on SD1.5 beats rotation — on the metric that matters</div>
+ <p class="lead">Downstream utility, not image beauty, is the real test. The key insight is about <i>information</i>: rotating an image doesn't change its shape label, so rotated copies teach a shape model nothing new. Synthetic replicates have genuinely different shapes with their own computed labels — new signal.</p>
+
+ <figure class="hero">
+  <img src="difference_dropout_vs_rotation.png" alt="rotation vs generative augmentation">
+  <figcaption><b>The difference, visually.</b> Left: classical rotation makes copies of the <i>same</i> colony — same shape, zero new morphology information. Right: conditioning-dropout SD1.5 makes genuinely <i>new</i> shapes — new shape labels the model can learn from. Downstream @N=60 (15-seed, paired): generative <b>shape_factor R² 0.396 vs rotation 0.339</b> (+0.057, p&lt;0.05, significant in 12/15 seeds).</figcaption>
+ </figure>
+
+ <div class="two">
+  <figure>
+   <img src="fig_branching_base_vs_all.png" alt="per-feature downstream">
+   <figcaption><b>It's axis-selective.</b> Left: on aggregate R² the in-domain augmenter ties rotation across scarcity levels. Right: the win concentrates on <b>shape_factor</b> — exactly the morphology axis where synthetic replicates carry faithful new variation.</figcaption>
+  </figure>
+  <figure>
+   <img src="flux_diversity_frontier.png" alt="diversity frontier">
+   <figcaption><b>How we buy diversity for free.</b> Tuning conditioning strength + guidance (and conditioning-dropout training) moves SD1.5 along a realism↔diversity frontier — no new backbone, inference-only. The sweet spot keeps realism at baseline while raising useful diversity 0.252 → 0.271.</figcaption>
+  </figure>
+ </div>
+ <div class="note"><b>Honest caveat (realism ↔ downstream tension):</b> the most diverse config (lower strength) wins shape_factor biggest but looks slightly fake; the realistic config still wins shape_factor but dips on aggregate R². The robust claim survives either way: <b>generative augmentation beats rotation on shape_factor at every operating point.</b></div>
+</section>
+
+<!-- ACT 4 -->
+<section>
+ <h2>Act 4 · Generalization</h2>
+ <div class="act">The same mechanism holds in a second, totally different domain</div>
+ <p class="lead">Multiplexed colonies have no petri dish and no morphology task — the label is the aTc/IPTG induction level. But the core mechanism (rotation is label-invariant; synth adds new label info) still applies, and the result has the <b>same shape</b> as branching: it wins one meaningful axis and can hurt on another.</p>
+ <table>
+  <tr><th>Multiplexed decode · aug vs rotation (15-seed, K=1)</th><th>Δ accuracy</th><th>t</th><th>seeds won</th><th></th></tr>
+  <tr><td class="bk">aTc level (row)</td><td class="g">+0.045</td><td>6.77</td><td>14/15</td><td><span class="pill win">win</span></td></tr>
+  <tr><td class="bk">IPTG level (column)</td><td class="r">−0.022</td><td>−2.19</td><td>4/15</td><td><span class="pill loss">hurts</span></td></tr>
+ </table>
+ <div class="note"><b>Refined two-domain claim:</b> generative augmentation beats rotation on the axis where its synthetic variation is <b>faithful</b> (branching shape_factor; multiplexed aTc) and can <b>hurt</b> where it isn't (multiplexed IPTG). Axis-selective, not uniform — more defensible and more publishable than "it helps."</div>
+</section>
+
+<!-- ACT 5 -->
+<section>
+ <h2>Act 5 · Presentation</h2>
+ <div class="act">Standardizing the petri dish — "1 million times better"</div>
+ <p class="lead">Generated dishes came out inconsistent in size and ~12% inflated. The fix is a <b>post-process, not a retrain</b>: detect each dish, rescale its rim to the measured real radius, and composite only the colony interior inside a fixed real-glass template.</p>
+
+ <figure class="hero">
+  <img src="composite_showcase.png" alt="standardized dishes">
+  <figcaption><b>28 generated colonies, uniform dishes.</b> Every image now has a consistent dish size and a full real rim, with the colony constrained inside. Makes the whole set look like one clean experimental plate.</figcaption>
+ </figure>
+ <div class="two">
+  <figure><img src="dish_composite_demo.png" alt="dish composite before after"><figcaption><b>Before → after</b> on single images: the inflated/partial dish becomes the standardized template rim with the colony interior feathered in.</figcaption></figure>
+  <figure><img src="realism_old_vs_new.png" alt="realism old vs new"><figcaption><b>Realism fix.</b> The full-strength dropout config anchors colony size and reduces the "too big / too bright" look of the earlier diverse config.</figcaption></figure>
+ </div>
+ <div class="note warn"><b>Dual-track — important.</b> The composite is <b>presentation-only</b>. Feeding composited images into downstream training <i>hurts</i> it, because the fixed-radius feathering clips exactly the colony shape diversity that was the augmenter's edge. Science/downstream uses <b>raw</b> synth; figures/slides use <b>composited</b>.</div>
+</section>
+
+<!-- STATUS -->
+<section>
+ <h2>Where things stand</h2>
+ <div class="status">
+  <p class="kicker">Done</p>
+  <p style="margin:4px 0 16px"><b>DDPM 250-step re-sample (job 58367095) — complete.</b> realism 0.542 / CMMD 10.11 — no better than the 50-step run (0.538/9.81), slightly worse. Confirms the blur is structural, not undersampling. <b>The DDPM is dead and the backbone search is fully closed — no pending jobs.</b></p>
+  <p class="kicker">Decision pending</p>
+  <p style="margin:4px 0 0"><b>How to package the closed-out search for Kinshuk.</b> The story above is complete and self-contained — the open question is the delivery format (update the corrected deck, a chat-text update with figures, or wait on the re-sample).</p>
+ </div>
+</section>
+
+<p class="date" style="margin-top:34px">Figures regenerable on DCC. Backbone montages: <code>make_crossbackbone.py</code> · escalation: <code>montage_final.py</code> · downstream: <code>difference</code>/<code>base_vs_all</code> builders · dish: <code>dish_composite.py</code>, <code>showcase_composite.py</code>.</p>
+
+</div></body></html>

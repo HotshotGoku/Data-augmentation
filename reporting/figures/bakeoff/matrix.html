@@ -1,0 +1,54 @@
+<!doctype html><html><head><meta charset="utf-8">
+<title>Backbone × Dataset matrix — everything we tried</title>
+<style>
+ body{background:#0b0c0f;color:#e9eaec;font:15px/1.6 -apple-system,Segoe UI,Roboto,sans-serif;margin:0;padding:38px 0 70px}
+ .wrap{max-width:1320px;margin:0 auto;padding:0 32px}
+ h1{font-size:30px;margin:0 0 6px;letter-spacing:-.4px}
+ .sub{color:#9aa0a6;margin:0 0 4px;max-width:900px}
+ .date{color:#6b7280;font-size:13px;margin:0 0 26px}
+ h2{font-size:14px;letter-spacing:.14em;text-transform:uppercase;color:#7dd3fc;margin:40px 0 10px}
+ .matrix{border:1px solid #23262d;border-radius:12px;overflow:auto;background:#0b0c0f;box-shadow:0 18px 50px -24px #000}
+ .matrix img{display:block;min-width:1100px;width:100%}
+ .how{background:#15171c;border-left:3px solid #3b82f6;border-radius:0 8px 8px 0;padding:12px 18px;margin:16px 0;color:#c3c9d1;font-size:14px}
+ table{border-collapse:collapse;margin:12px 0 6px;font-size:13.5px;width:100%}
+ th,td{border:1px solid #23262d;padding:7px 11px;text-align:center}
+ th{color:#9aa0a6;font-weight:600;background:#101216} td.bk{text-align:left;font-weight:600}
+ td.g{color:#86efac;font-weight:700} td.r{color:#fca5a5} td.dim{color:#6b7280}
+ .dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:7px;vertical-align:middle}
+ figure{margin:14px 0 6px} figcaption{color:#8b919a;font-size:13px;margin:8px 2px 0}
+ .two{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+ .two img{width:100%;border:1px solid #23262d;border-radius:10px;display:block}
+ a{color:#7dd3fc} .pill{display:inline-block;font-size:11px;font-weight:700;padding:1px 8px;border-radius:999px;background:#14321f;color:#86efac;border:1px solid #1f5235}
+ @media(max-width:820px){.two{grid-template-columns:1fr}}
+</style></head><body><div class="wrap">
+
+<h1>Backbone × Dataset matrix</h1>
+<p class="sub">Every generative model we tried (columns) against every dataset we tried it on (rows), aligned to the same source condition so you can compare like-for-like. "Not tried" = that backbone was never run on that dataset.</p>
+<p class="date">2026-10-11 · one representative condition per row (branching ffc112, multiplexed R10C1) · see per-condition drill-downs below · <a href="story.html">← full project story</a></p>
+
+<div class="matrix"><img src="backbone_matrix.png" alt="backbone by dataset matrix"></div>
+
+<div class="how"><b>How to read the branching row (left → right):</b> real-quality SD1.5 (in-domain + dropout) → washed-out generalist → blobbier Flux → PixCell loses the branches entirely → FastGAN &amp; DDPM go blurry → zero-shot SDXL is pure hallucinated texture. <b>Nothing to the right of SD1.5 matches it.</b> <b>Multiplexed row (now complete):</b> dropout / in-domain / PixCell render coherent fluorescence; Flux and FastGAN are smoother blobs; DDPM goes brown and blurry; zero-shot SDXL hallucinates again. On raw CMMD several models beat in-domain SD1.5 here — but only <b>dropout</b> does it with faithful, coherent samples (best realism 0.335).</div>
+
+<h2>The numbers behind each column</h2>
+<table>
+ <tr><th>Model</th><th>What it is</th><th>Branching CMMD ↓</th><th>Multiplexed CMMD ↓</th><th>Verdict</th></tr>
+ <tr><td class="bk"><span class="dot" style="background:#86efac"></span>SD1.5 — in-domain</td><td>fine-tuned ControlNet on this domain</td><td class="g">3.38</td><td>12.6</td><td>the reliable workhorse; wins branching</td></tr>
+ <tr><td class="bk"><span class="dot" style="background:#86efac"></span>SD1.5 — dropout*</td><td>+ conditioning-dropout training</td><td class="g">3.20</td><td class="g">7.97</td><td><span class="pill">the win</span> beats rotation on shape_factor</td></tr>
+ <tr><td class="bk"><span class="dot" style="background:#fbbf24"></span>SD1.5 — generalist</td><td>trained out-of-domain, applied here</td><td class="r">~8.8 (OOD)</td><td class="dim">—</td><td>washed / over-saturated; the old confound</td></tr>
+ <tr><td class="bk"><span class="dot" style="background:#7dd3fc"></span>Flux — bf16 + CN6</td><td>12B flow-matching, fully escalated</td><td>4.84</td><td>7.71</td><td>realism plateaus ~0.50; never catches SD1.5</td></tr>
+ <tr><td class="bk"><span class="dot" style="background:#fca5a5"></span>PixCell</td><td>cell-microscopy DiT (frozen prior)</td><td class="r">~49.8 washed</td><td class="g">5.78</td><td>wins multiplexed, useless on branching</td></tr>
+ <tr><td class="bk"><span class="dot" style="background:#c4b5fd"></span>FastGAN</td><td>low-data GAN, unconditional</td><td class="r">15.4</td><td>8.46</td><td>undertrained + unconditional; not a usable augmenter</td></tr>
+ <tr><td class="bk"><span class="dot" style="background:#fca5a5"></span>conditional DDPM</td><td>from-scratch Palette-style, 6-ch</td><td class="r">9.81</td><td class="r">19.71</td><td>learns structure, can't texture → blurry</td></tr>
+ <tr><td class="bk"><span class="dot" style="background:#fca5a5"></span>zero-shot SDXL</td><td>general prior, no training (img2img)</td><td class="r">71.0</td><td class="r">42.99</td><td>hallucinated; ~20× worse than in-domain</td></tr>
+</table>
+<p class="date">CMMD = distribution-level CLIP distance, lower = better; all scored identically vs held-out real replicates. *On multiplexed, dropout CMMD 7.97 beats in-domain SD1.5 (12.6) with the best realism (0.335); the downstream aTc-decode win was measured on the in-domain SD1.5 augmenter. Branching/multiplexed Flux used different configs (bf16+CN6 vs fp8/CN4). Also attempted, no usable samples to show: StyleGAN2-ADA (CUDA-op build failures), SD3.5-ControlNet (diffusers env dead-ends).</p>
+
+<h2>Drill-down — more conditions per dataset</h2>
+<p class="sub">The matrix above shows one condition per row. These are the original per-domain montages with four conditions each, so you can see the pattern holds across colonies (not cherry-picked — conditions are evenly spaced across the sorted held-out set).</p>
+<div class="two">
+ <figure><img src="cross_branching.png" alt="branching conditions"><figcaption><b>Branching</b> — source · real · SD1.5 · Flux · PixCell-256 · PixCell-1024, four conditions.</figcaption></figure>
+ <figure><img src="cross_multiplexed.png" alt="multiplexed conditions"><figcaption><b>Multiplexed</b> — source · real · SD1.5 in-domain · SD1.5 generalist · PixCell, four conditions.</figcaption></figure>
+</div>
+
+</div></body></html>

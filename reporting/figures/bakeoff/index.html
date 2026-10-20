@@ -1,0 +1,48 @@
+<!doctype html><html><head><meta charset="utf-8"><title>Backbone comparison across colony types</title>
+<style>
+ body{background:#0b0c0f;color:#e9eaec;font:15px/1.5 -apple-system,Segoe UI,Roboto,sans-serif;margin:0;padding:32px 40px;max-width:1400px}
+ h1{font-size:26px;margin:0 0 4px} h2{font-size:19px;margin:34px 0 6px;color:#7dd3fc}
+ .sub{color:#9aa0a6;margin:0 0 18px}
+ .flip{background:#15171c;border:1px solid #2a2d33;border-radius:10px;padding:14px 18px;margin:18px 0}
+ table{border-collapse:collapse;margin:10px 0 4px;font-size:14px}
+ th,td{border:1px solid #2a2d33;padding:6px 14px;text-align:center}
+ th{color:#9aa0a6;font-weight:600} td.win{color:#86efac;font-weight:700} td.bad{color:#fca5a5}
+ .bk{color:#e9eaec;text-align:left;font-weight:600}
+ img{width:100%;border:1px solid #2a2d33;border-radius:8px;margin:4px 0 2px;display:block}
+ .cap{color:#9aa0a6;font-size:13px;margin:2px 0 8px}
+ .leg span{display:inline-block;margin-right:16px;font-size:13px}
+ code{background:#15171c;padding:1px 6px;border-radius:4px;color:#7dd3fc}
+</style></head><body>
+<h1>Backbone comparison across colony types</h1>
+<p class="sub">How every augmenter backbone we've trained performs on two different kinds of bacterial colony — real outputs, aligned by condition. Updated 2026-10-08.</p>
+
+<div class="flip">
+<b>The headline: the best backbone flips with the colony type.</b> On <b>branching</b> (dendritic) colonies, an in-domain SD1.5 wins and PixCell washes out entirely. On <b>multiplexed</b> (cell-like, 2-gene) colonies, <b>PixCell</b> wins. No single backbone is best everywhere — the right augmenter depends on the morphology. Flux was only ever trained on branching.
+</div>
+
+<table>
+<tr><th>CMMD (lower = better)</th><th>Branching</th><th>Multiplexed (cell-like)</th></tr>
+<tr><td class="bk">SD1.5 — in-domain</td><td class="win">3.38</td><td>12.57</td></tr>
+<tr><td class="bk">Flux — bf16 (best of 3 configs)</td><td>4.84</td><td>— (not trained)</td></tr>
+<tr><td class="bk">PixCell — best epoch</td><td class="bad">49.8 (washed)</td><td class="win">5.78</td></tr>
+</table>
+<p class="cap">All numbers verified from each run's metrics.json, scored identically vs held-out real replicates. CMMD = distribution-level CLIP distance.</p>
+
+<h2>① Branching colonies (dendritic)</h2>
+<p class="sub">SD1.5 reproduces the full branch structure; Flux (even fully scaled) is recognizable but blobbier; both PixCell variants lose the branching entirely — texture with no dendrites.</p>
+<img src="cross_branching.png" alt="branching cross-backbone montage">
+<p class="cap">Rows = 4 test conditions (evenly spaced across the sorted 28 held-out, not hand-picked). Columns: source · one real replicate · then each backbone's best config.</p>
+
+<h2>② Multiplexed colonies (cell-like, 2-gene patterning)</h2>
+<p class="sub">PixCell produces the sharpest cell-like detail and matches the distribution best (CMMD 5.8). The in-domain SD1.5 is plausible; the generalist SD1.5 is over-saturated/unrealistic. Flux was never trained on this domain.</p>
+<img src="cross_multiplexed.png" alt="multiplexed cross-backbone montage">
+<p class="cap">Rows = 4 conditions across the 10×7 (aTc × IPTG) grid. Columns: source · one real replicate · SD1.5 in-domain · SD1.5 generalist · PixCell.</p>
+
+<h2>Backbones tried, at a glance</h2>
+<p class="leg">
+<span>🟢 <b>SD1.5</b> — solid on both domains; the reliable workhorse.</span>
+<span>🔵 <b>Flux</b> — branching only; diverse but less realistic, doesn't beat in-domain SD1.5.</span>
+<span>🔴 <b>PixCell</b> — domain-dependent: great on cell-like multiplexed, useless on branching.</span>
+</p>
+<p class="cap">Montages regenerable: <code>make_crossbackbone.py</code> on DCC. Also tried but not shown: Flux fp8 pilot/scaled configs (see the corrected deck), BBDM (early, dropped).</p>
+</body></html>

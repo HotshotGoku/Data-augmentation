@@ -106,3 +106,7 @@ strength_sweep_out/
 reporting/figures/bakeoff_compare/
 reporting/figures/multiplexed_ft_comparison.png
 reporting/figures/multiplexed_ft_montage_wide.png
+
+# committed deck deliverables (2026-10-20) — un-ignore .pptx under reporting/decks/
+!reporting/decks/
+!reporting/decks/**
