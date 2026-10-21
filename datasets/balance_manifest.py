@@ -29,7 +29,7 @@ REG = {
 
 
 def repoint(p):
-    return p.replace("/sa603/data/", "/sa603/data/clean/")
+    return p if "/sa603/data/clean/" in p else p.replace("/sa603/data/", "/sa603/data/clean/")  # idempotent
 
 
 def oversample(rows, cond_of):
