@@ -20,6 +20,7 @@ DIRS=(
   multiplexed_eval/sources
   ood_kl_2species
   external_datasets/rattray_2023/images
+  external_datasets/rattray_2023/processed
   external_datasets/rattray_2023/test_reals
   external_datasets/rattray_2023/test_sources
 )

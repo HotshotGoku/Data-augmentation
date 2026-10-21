@@ -33,14 +33,17 @@ N_PER = int(os.environ.get("N_PER", "8"))
 EPOCHS = int(os.environ.get("EPOCHS", "60"))
 BACKBONE = os.environ.get("BACKBONE", "resnet18")
 DEV = "cuda" if torch.cuda.is_available() else ("mps" if torch.backends.mps.is_available() else "cpu")
-FEATS = ["shape_factor", "fractal_dim", "solidity", "eccentricity", "edge_std"]  # dropped lacunarity: heavy-tailed, destabilizes R2
+# Target feature set. Extended 2026-10-21 (user: branch-arch via "extend FEATS", per-axis + mean) with
+# the 4 branch-architecture axes; heavy-tailed COUNTS -> log1p (LOG_FEATS). Env-configurable so the
+# bake-off can vary the set. (lacunarity still excluded: heavy-tailed, destabilizes R2.)
+DEFAULT_FEATS = "shape_factor,fractal_dim,solidity,eccentricity,edge_std,n_tips,n_branch_points,branch_length,branch_density"
+FEATS = os.environ.get("FEATS", DEFAULT_FEATS).split(",")
+LOG_FEATS = set(os.environ.get("LOG_FEATS", "n_tips,n_branch_points").split(","))
 random.seed(SEED); np.random.seed(SEED); torch.manual_seed(SEED); torch.cuda.manual_seed_all(SEED)
 
 # ---- feature labels (rotation-invariant, so a rotated real keeps its label) ----
 def _vec(row):
-    lac = float(row["lacunarity"])
-    d = dict(row); d["lac_log"] = np.log1p(lac)
-    return np.array([float(d[f]) for f in FEATS], np.float32)
+    return np.array([np.log1p(float(row[f])) if f in LOG_FEATS else float(row[f]) for f in FEATS], np.float32)
 labels = {}
 for row in csv.DictReader(open(FEATURES_CSV)):
     labels[row["name"]] = _vec(row)
