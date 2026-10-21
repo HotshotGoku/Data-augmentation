@@ -20,7 +20,7 @@ import cv2, numpy as np
 from PIL import Image, ImageDraw
 from dish_normalize import detect_dish, SIZE          # same-dir import (script dir is on sys.path)
 
-RIM_FRAC = 0.15            # drop the outer 15% radius (glass-rim band) so only agar interior survives
+RIM_FRAC = 0.20            # drop the outer 20% radius (glass-rim band); user-approved 2026-10-21 (no rim survives)
 
 
 def remove_dish(img, rim_frac=RIM_FRAC):
