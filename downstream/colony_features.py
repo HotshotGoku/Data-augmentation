@@ -9,7 +9,7 @@ Usage: python colony_features.py --images "model_results/refs_tif/*.TIF" --out f
 import os, glob, argparse, csv
 import numpy as np
 from PIL import Image
-from scipy.ndimage import uniform_filter, binary_fill_holes
+from scipy.ndimage import uniform_filter, binary_fill_holes, convolve
 from scipy.stats import skew, kurtosis
 from skimage import filters, measure, morphology, segmentation
 
@@ -81,6 +81,22 @@ def lacunarity(binary, box=None):
     return float((s.var() + mean**2) / (mean**2))
 
 
+def branch_architecture(binary):
+    """Skeleton topology = branch complexity (NEW continuous, rotation-invariant morphology axis).
+    tips = skeleton endpoints (1 neighbor); branch_points = junctions (>=3 neighbors). A ramified
+    colony has many tips/junctions; a round one has ~none. Rotation can't relabel these -> good
+    axis for a generative augmenter to beat rotation on. Density normalizes by skeleton length."""
+    skel = morphology.skeletonize(binary)
+    length = float(skel.sum())
+    if length < 5:
+        return dict(n_tips=0, n_branch_points=0, branch_length=0.0, branch_density=0.0)
+    nb = convolve(skel.astype(np.uint8), np.array([[1, 1, 1], [1, 0, 1], [1, 1, 1]]), mode="constant") * skel
+    n_tips = int((nb == 1).sum())
+    n_branch = int((nb >= 3).sum())
+    return dict(n_tips=n_tips, n_branch_points=n_branch, branch_length=length,
+                branch_density=float(n_branch / length))
+
+
 def edge_complexity(gray, mask):
     """Sobel gradient-magnitude stats inside the colony (Rattray-2023-style complexity)."""
     gmag = filters.sobel(gray / (gray.max() + 1e-9))
@@ -109,6 +125,7 @@ def features(path):
         lacunarity=lacunarity(mask),
     )
     f.update(edge_complexity(gray, mask))
+    f.update(branch_architecture(mask))
     return f, mask
 
 
@@ -120,7 +137,11 @@ def _selfcheck():
     cross = np.zeros((256, 256), bool); cross[120:136, 20:236] = True; cross[20:236, 120:136] = True
     assert fractal_dimension(cross) >= d_sq - 0.05, "branched shape should not be smoother than a square"
     assert lacunarity(sq) > 1.0
-    print(f"selfcheck OK (square boundary D={d_sq:.2f}, cross D={fractal_dimension(cross):.2f})")
+    ba = branch_architecture(cross)              # a '+' has 1 junction and ~4 tips
+    assert ba["n_branch_points"] >= 1 and ba["n_tips"] >= 3, f"cross tips={ba['n_tips']} junc={ba['n_branch_points']}"
+    bar = np.zeros((256, 256), bool); bar[120:136, 20:236] = True
+    assert branch_architecture(bar)["n_branch_points"] == 0, "straight bar has no junction"
+    print(f"selfcheck OK (square D={d_sq:.2f}, cross D={fractal_dimension(cross):.2f}, cross tips={ba['n_tips']}/junc={ba['n_branch_points']})")
 
 
 if __name__ == "__main__":
@@ -146,7 +167,7 @@ if __name__ == "__main__":
             rgb[b] = [255, 60, 60]
             overlays.append((os.path.basename(p), Image.fromarray(rgb).resize((256, 256))))
 
-    keys = ["name","area_frac","circularity","shape_factor","solidity","eccentricity","fractal_dim","lacunarity","edge_std","edge_skew","edge_kurt"]
+    keys = ["name","area_frac","circularity","shape_factor","solidity","eccentricity","fractal_dim","lacunarity","edge_std","edge_skew","edge_kurt","n_tips","n_branch_points","branch_length","branch_density"]
     with open(a.out, "w", newline="") as fh:
         wtr = csv.DictWriter(fh, fieldnames=keys); wtr.writeheader()
         for r in rows: wtr.writerow({k: (round(r[k],4) if isinstance(r[k],float) else r[k]) for k in keys})
