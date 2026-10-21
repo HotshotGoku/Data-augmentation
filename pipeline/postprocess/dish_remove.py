@@ -110,7 +110,7 @@ if __name__ == "__main__":
     if not (a.src and a.dst):
         raise SystemExit("need src_dir dst_dir (apply), or --preview GLOB [--sweep ...] --out PNG")
     os.makedirs(a.dst, exist_ok=True); n = 0
-    for fp in sorted(glob.glob(a.src + "/*.TIF") + glob.glob(a.src + "/*.png")):
+    for fp in sorted(glob.glob(a.src + "/*.TIF") + glob.glob(a.src + "/*.tif") + glob.glob(a.src + "/*.png")):
         removed, _ = remove_dish(_load(fp), a.rim_frac)
-        Image.fromarray(removed).save(os.path.join(a.dst, os.path.splitext(os.path.basename(fp))[0] + ".png")); n += 1
+        Image.fromarray(removed).save(os.path.join(a.dst, os.path.basename(fp))); n += 1   # keep name+ext -> drop-in clean mirror
     print(f"removed dish from {n} imgs @rim={a.rim_frac:.2f} -> {a.dst}", flush=True)
