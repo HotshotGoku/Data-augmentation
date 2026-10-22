@@ -18,7 +18,7 @@ SIM=/hpc/group/youlab/sa603/code/Simulation_templated_pattern_prediction
 source /hpc/home/sa603/miniconda3/etc/profile.d/conda.sh
 conda activate pytorch_PA_patternprediction
 export PHYSICS_DL_PROJECT_PATH="$SIM"; cd "$REPO"
-export PYTHONPATH="$REPO:$(dirname "$REPO"):$REPO/utils:${PYTHONPATH:-}"
+export PYTHONPATH="$REPO:$REPO/pipeline:$(dirname "$REPO"):$REPO/utils:${PYTHONPATH:-}"  # pipeline/ on path post-reorg (reptorep_* moved there)
 export HF_HOME=/hpc/group/youlab/sa603/.hf_home
 nvidia-smi --query-gpu=name --format=csv,noheader | head -1
 
@@ -43,5 +43,5 @@ export FT_LR=${FT_LR:-1e-5} FT_EPOCHS=${FT_EPOCHS:-150} FT_FREEZE=${FT_FREEZE:-n
 export FT_SAVE_TOPK=1 FT_TAG=${FT_TAG:?set FT_TAG} FT_SEED=42
 export HINT_DROPOUT=${HINT_DROPOUT:-0.0}
 echo "=== SD1.5 train MANIFEST=$MANIFEST tag=$FT_TAG epochs=$FT_EPOCHS dropout=$HINT_DROPOUT $(date) ==="
-python reptorep_finetune.py
-echo "=== done $(date) exit=$? ==="; ls -la finetune_runs/$FT_TAG/lightning_logs/version_*/checkpoints/ 2>/dev/null | tail
+python pipeline/reptorep_finetune.py; rc=$?
+echo "=== done $(date) exit=$rc ==="; ls -la finetune_runs/$FT_TAG/lightning_logs/version_*/checkpoints/ 2>/dev/null | tail
