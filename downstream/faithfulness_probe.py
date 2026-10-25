@@ -19,7 +19,8 @@ downstream trainer treats as truth? We measure it directly:
 Readout: per axis, synth_recovery (cls->accuracy, reg->R2) and norm = synth_recovery / ceiling
 (comparable across tasks). The metric is validated if it ranks known win > tie > lose.
 
-Env: TASK {mux|branching}, SYNTH_DIR (required), SEED[0], EPOCHS[30], BACKBONE[resnet18|resnet50],
+Env: TASK {mux|branching|kl|rattray}, SYNTH_DIR (required), SEED[0], EPOCHS[30], BACKBONE[resnet18|resnet50],
+     DRYRUN[0] (build+count only, no decode/train — CPU-safe pre-flight),
      REG_WEIGHT[3.0], NW[4], OUT_TSV, + task data paths (defaults = DCC). Runs on DCC GPU.
 Usage: TASK=mux   SYNTH_DIR=.../multiplexed_eval/synth_ft python faithfulness_probe.py
        TASK=branching FEATURES_CSV=.../features_branching_dropout_s10g7.csv \
@@ -51,6 +52,8 @@ def acc(pred_cls, targ_cls):
 # ---- task builders: -> (cls_axes[(name,nclass)], reg_axes[name], train, test, synth) ----
 #      each item = (img_uint8_rgb, cls_labels[int...], reg_labels[float...])
 def _load_rgb(fp):
+    if os.environ.get("DRYRUN") == "1":
+        return np.zeros((8, 8, 3), np.uint8)   # pre-flight: exercise regex/paths + count, no decode (CPU-safe)
     import cv2
     return cv2.cvtColor(cv2.imread(fp, cv2.IMREAD_COLOR), cv2.COLOR_BGR2RGB)
 
@@ -118,7 +121,56 @@ def build_branching():
     return cls_axes, reg_axes, train, test, synth
 
 
-BUILDERS = {"mux": build_mux, "branching": build_branching}
+def build_kl():
+    # decode task: assigned label = log((a+1)/(b+1)) mixing ratio from the source stem (reg).
+    # reals 'a-b_rep.TIF', synth '<stem>_s{i}.png' (ds_gen); hold out rep==TEST_REP as ceiling.
+    REALS = os.environ.get("REALS_DIR", "/hpc/group/youlab/sa603/data/clean/ood_kl_2species")
+    SYNTH = os.environ["SYNTH_DIR"]
+    TEST_REP = os.environ.get("TEST_REP", "1")
+    ratio = lambda a, b: float(np.log((float(a) + 1) / (float(b) + 1)))
+    cls_axes, reg_axes = [], ["ratio"]
+    train, test = [], []
+    for fp in sorted(glob.glob(REALS + "/*.TIF")):
+        m = re.match(r"(\d+)-(\d+)_(\d+)\.TIF$", os.path.basename(fp))
+        if not m:
+            continue
+        it = (_load_rgb(fp), [], [ratio(m.group(1), m.group(2))])
+        (test if m.group(3) == TEST_REP else train).append(it)
+    synth = []
+    for fp in sorted(glob.glob(SYNTH + "/*.png")):
+        m = re.match(r"(\d+)-(\d+)_\d+_s\d+\.png$", os.path.basename(fp))
+        if m:
+            synth.append((_load_rgb(fp), [], [ratio(m.group(1), m.group(2))]))
+    return cls_axes, reg_axes, train, test, synth
+
+
+def build_rattray():
+    # classification task: assigned label = strain id from 'PIL{strain}-{rep}' (cls, ~62-way).
+    # reals processed/*.png, synth '<stem>_s{i}.png'; hold out rep==TEST_REP as ceiling.
+    REALS = os.environ.get("REALS_DIR", "/hpc/group/youlab/sa603/data/clean/external_datasets/rattray_2023/processed")
+    SYNTH = os.environ["SYNTH_DIR"]
+    TEST_REP = os.environ.get("TEST_REP", "1")
+    real_fp = sorted(glob.glob(REALS + "/*.png"))
+    strains = sorted({int(m.group(1)) for fp in real_fp
+                      for m in [re.match(r"PIL(\d+)-(\d+)", os.path.basename(fp))] if m})
+    c2i = {s: i for i, s in enumerate(strains)}
+    cls_axes, reg_axes = [("strain", len(strains))], []
+    train, test = [], []
+    for fp in real_fp:
+        m = re.match(r"PIL(\d+)-(\d+)", os.path.basename(fp))
+        if not m:
+            continue
+        it = (_load_rgb(fp), [c2i[int(m.group(1))]], [])
+        (test if m.group(2) == TEST_REP else train).append(it)
+    synth = []
+    for fp in sorted(glob.glob(SYNTH + "/*.png")):
+        m = re.match(r"PIL(\d+)-(\d+)_s\d+\.png$", os.path.basename(fp))
+        if m and int(m.group(1)) in c2i:
+            synth.append((_load_rgb(fp), [c2i[int(m.group(1))]], []))
+    return cls_axes, reg_axes, train, test, synth
+
+
+BUILDERS = {"mux": build_mux, "branching": build_branching, "kl": build_kl, "rattray": build_rattray}
 
 
 def run(task):
@@ -134,6 +186,9 @@ def run(task):
     if not train or not synth:
         raise SystemExit(f"[{task}] need real train + synth: got {len(train)} train, {len(synth)} synth")
     print(f"[{task}] cls_axes={cls_axes} reg_axes={reg_axes} | real train={len(train)} test={len(test)} synth={len(synth)}", flush=True)
+    if os.environ.get("DRYRUN") == "1":
+        print(f"[{task}] DRYRUN ok ({os.path.basename(os.path.normpath(os.environ['SYNTH_DIR']))}) -- no training", flush=True)
+        return
 
     # standardize reg targets on real train (R2 is scale-invariant; keeps multi-feature MSE balanced)
     RTR = np.array([it[2] for it in train], float) if reg_axes else np.zeros((len(train), 0))

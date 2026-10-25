@@ -13,7 +13,7 @@ import sys, csv, argparse
 from collections import defaultdict
 import numpy as np
 
-PRIMARY = {"mux": "atc", "branching": "shape_factor"}      # downstream headline axis per task
+PRIMARY = {"mux": "atc", "branching": "shape_factor", "kl": "ratio", "rattray": "strain"}  # downstream headline axis per task
 CONTRAST = {"mux": "iptg"}                                  # the known within-dataset lose axis
 
 
