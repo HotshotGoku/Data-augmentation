@@ -31,6 +31,6 @@ conda activate /hpc/group/youlab/sa603/envs/pixcell
 cd "$REPO"
 python -c "import torch,sys; print('cuda',torch.cuda.is_available()); sys.exit(0 if torch.cuda.is_available() else 1)" || { echo 'FATAL: no CUDA'; exit 1; }
 echo "=== pixcell-cn train start $(date) TAG=$TAG TRAIN_JSON=$TRAIN_JSON OUT=$OUT MAX_STEPS=${MAX_STEPS:-0} EPOCHS=${EPOCHS:-40} ==="
-python pixcell_train_cn.py
+python bakeoff/pixcell/pixcell_train_cn.py
 echo "=== pixcell-cn exit=$? $(date) ==="
 ls -la "$OUT" 2>&1
