@@ -25,11 +25,13 @@ export DRYRUN=${DRYRUN:-0}
 
 D=/hpc/group/youlab/sa603/data/clean
 CSV=$REPO/downstream/outputs/branching_downstream_out
-export OUT_TSV=$REPO/faithfulness_out/results_clean.tsv
+export OUT_TSV=${OUT_TSV:-$REPO/faithfulness_out/results_clean.tsv}
 export BACKBONE=${BACKBONE:-resnet18}
 export EPOCHS=${EPOCHS:-30}
 export NW=8
 SEEDS=${SEEDS:-"0 1 2"}
+VARIANTS=${VARIANTS:-"clean clean_dropout"}   # override e.g. VARIANTS=clean_strat for a single P4 config
+TASKS=${TASKS:-"branching mux kl rattray"}    # override e.g. TASKS=branching to score one dataset
 [ "$DRYRUN" = "1" ] && SEEDS=0
 rm -f "$OUT_TSV"
 
@@ -40,19 +42,27 @@ export TEST_REAL_DIR=$D/branching_256/test/reals
 
 for SEED in $SEEDS; do
   export SEED
-  for V in clean clean_dropout; do
+  for V in $VARIANTS; do
+    if [[ " $TASKS " == *" branching "* ]]; then
     echo "=== branching $V seed=$SEED $(date +%H:%M:%S) ==="
     TASK=branching FEATURES_CSV=$CSV/features_branching_$V.csv \
       SYNTH_DIR=$D/branching_downstream/synth_train_$V python downstream/faithfulness_probe.py || echo "  FAILED branching $V s$SEED"
+    fi
+    if [[ " $TASKS " == *" mux "* ]]; then
     echo "=== mux $V seed=$SEED $(date +%H:%M:%S) ==="
     TASK=mux REALS_DIR=$D/multiplexed_eval/reals \
       SYNTH_DIR=$D/multiplexed_eval/synth_$V python downstream/faithfulness_probe.py || echo "  FAILED mux $V s$SEED"
+    fi
+    if [[ " $TASKS " == *" kl "* ]]; then
     echo "=== kl $V seed=$SEED $(date +%H:%M:%S) ==="
     TASK=kl REALS_DIR=$D/ood_kl_2species \
       SYNTH_DIR=$D/ood_kl_2species/synth_$V python downstream/faithfulness_probe.py || echo "  FAILED kl $V s$SEED"
+    fi
+    if [[ " $TASKS " == *" rattray "* ]]; then
     echo "=== rattray $V seed=$SEED $(date +%H:%M:%S) ==="
     TASK=rattray REALS_DIR=$D/external_datasets/rattray_2023/processed \
       SYNTH_DIR=$D/external_datasets/rattray_2023/synth_$V python downstream/faithfulness_probe.py || echo "  FAILED rattray $V s$SEED"
+    fi
   done
 done
 echo "=== PROBE DONE $(date) ==="
