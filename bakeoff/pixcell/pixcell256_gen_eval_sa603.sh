@@ -17,7 +17,7 @@ REPO=/hpc/group/youlab/sa603/code/Data_augmentation
 TAG=${TAG:-branching}
 EP=${EP:-30}
 case "$TAG" in
-  branching) SOURCES=/hpc/group/youlab/sa603/data/branching_256/test/sources; REAL_SPEC="FFBR:/hpc/group/youlab/sa603/data/branching_256/test/reals"; RUNS=$REPO/pixcell_cn_runs/branching ;;
+  branching) SOURCES=${SOURCES:-/hpc/group/youlab/sa603/data/branching_256/test/sources}; REAL_SPEC=${REAL_SPEC:-FFBR:/hpc/group/youlab/sa603/data/branching_256/test/reals}; RUNS=$REPO/pixcell_cn_runs/branching ;;
   *)         SOURCES=/hpc/group/youlab/sa603/data/multiplexed_eval/sources;    REAL_SPEC="MPLEX:/hpc/group/youlab/sa603/data/multiplexed_eval/reals_heldout"; RUNS=$REPO/pixcell_cn_runs/mplex ;;
 esac
 CKPT=${PIXCELL_CN_CKPT:-$RUNS/controlnet_ep${EP}.pth}
@@ -31,14 +31,14 @@ conda activate /hpc/group/youlab/sa603/envs/pixcell
 cd "$REPO"
 echo "=== node/GPU $(date) ==="; nvidia-smi --query-gpu=name,memory.total --format=csv,noheader 2>&1
 echo "=== gen TAG=$TAG CKPT=$CKPT SOURCES=$SOURCES OUT=$OUT SAMPLER=${SAMPLER:-ddpm} N=${NUM_SAMPLES:-4} ==="
-PIXCELL_CN_CKPT="$CKPT" GEN_OUT="$OUT" SOURCES="$SOURCES" NUM_SAMPLES=${NUM_SAMPLES:-4} STEPS=${STEPS:-50} SAMPLER=${SAMPLER:-ddpm} python pixcell_gen_eval.py
+PIXCELL_CN_CKPT="$CKPT" GEN_OUT="$OUT" SOURCES="$SOURCES" NUM_SAMPLES=${NUM_SAMPLES:-4} STEPS=${STEPS:-50} SAMPLER=${SAMPLER:-ddpm} python bakeoff/pixcell/pixcell_gen_eval.py
 echo "=== gen exit=$? count=$(ls "$OUT"/*.png 2>/dev/null | wc -l) ==="
 
 echo "=== PHASE B: score (pytorch_PA env) $(date) ==="
 conda deactivate; conda activate pytorch_PA_patternprediction
 export PHYSICS_DL_PROJECT_PATH=/hpc/group/youlab/sa603/code/Simulation_templated_pattern_prediction
 export PYTHONPATH="$REPO:$(dirname "$REPO"):$REPO/utils:${PYTHONPATH:-}"
-python eval_metrics.py --gen_dir "$OUT" --real_spec "$REAL_SPEC" --out "$OUT/metrics" && \
+python pipeline/metrics/eval_metrics.py --gen_dir "$OUT" --real_spec "$REAL_SPEC" --out "$OUT/metrics" && \
 python - "${TAG}-256ep${EP}" "$OUT/metrics/metrics.json" <<'PY'
 import json, sys
 tag, mj = sys.argv[1], sys.argv[2]
