@@ -20,8 +20,8 @@ def cond_of(p): return os.path.basename(p).split("_")[0]
 exclude = {cond_of(p) for p in glob.glob(f"{EXCLUDE_DIR}/*.TIF")}
 BASE = {"prompt": "", "a_prompt": "",
         "n_prompt": "longbody, lowres, bad anatomy, cropped, worst quality, low quality",
-        "image_resolution": 256, "ddim_steps": 50, "guess_mode": False,
-        "strength": float(os.environ.get("STRENGTH", "1.0")), "scale": float(os.environ.get("SCALE", "9.0")), "eta": 0.0}
+        "image_resolution": 256, "ddim_steps": int(os.environ.get("STEPS", "50")), "guess_mode": False,
+        "strength": float(os.environ.get("STRENGTH", "1.0")), "scale": float(os.environ.get("SCALE", "9.0")), "eta": float(os.environ.get("ETA", "0.0"))}
 CHUNK = 4
 
 srcs = []
