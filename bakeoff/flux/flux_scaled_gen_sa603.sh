@@ -25,5 +25,5 @@ CKPT=${CKPT:-$REPO/flux_cn_runs/scaled/controlnet_final.pth}
 GEN_OUT=${GEN_OUT:-$REPO/flux_cn_runs/scaled/eval_cn10}   # override per-run so fp8 and bf16 don't clobber
 echo "=== scaled-flux gen cn1.0 ckpt=$CKPT CN_LAYERS=${CN_LAYERS:-4} QUANT=${QUANT:-fp8} -> $GEN_OUT $(date) ==="
 CN_CKPT="$CKPT" GEN_OUT="$GEN_OUT" CN_LAYERS=${CN_LAYERS:-4} QUANT=${QUANT:-fp8} RES=256 NUM_SAMPLES=4 \
-  STEPS=28 GUID=3.5 CN_SCALE=1.0 python flux_gen_eval.py
+  STEPS=28 GUID=3.5 CN_SCALE=1.0 python bakeoff/flux/flux_gen_eval.py
 echo "=== gen done $(date) -> $GEN_OUT ==="
