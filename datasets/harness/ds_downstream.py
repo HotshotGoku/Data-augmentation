@@ -65,6 +65,9 @@ def build_train(seed):
             items.append((load(r["fp"]), lab))
             if MODE == "rotation":
                 for _ in range(NPER): items.append((rot_copy(load(r["fp"])), lab))
+            elif MODE == "real_dup":
+                im = load(r["fp"])
+                for _ in range(NPER): items.append((im, lab))
             elif MODE == "augmenter":
                 for sf in sorted(glob.glob(f"{SYNTH}/{r['stem']}_s*.png"))[:NPER]:
                     items.append((load(sf), lab))

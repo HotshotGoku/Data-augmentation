@@ -88,6 +88,9 @@ for c in TRAIN:
             rng = random.Random((hash(b) ^ SEED) & 0xffffffff)
             for _ in range(N_PER):
                 train_items.append((rot_flip(img, rng.uniform(0, 360), rng.random() < 0.5), labels[b]))
+        elif MODE == "real_dup":                   # matched-count control: exact copies (per-epoch hflip only)
+            for _ in range(N_PER):
+                train_items.append((img, labels[b]))
         elif MODE == "augmenter":                  # each synth carries its OWN computed label
             tag = b.split("_", 1)[1].replace(".TIF", "") if "_" in b else "src"
             for s in sorted(glob.glob(f"{SYNTH}/{c}_{tag}_s*.png"))[:N_PER]:

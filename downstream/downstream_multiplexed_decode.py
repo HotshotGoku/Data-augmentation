@@ -18,7 +18,7 @@ from torch.utils.data import Dataset, DataLoader
 from torchvision import transforms
 from torchvision.models import resnet18, ResNet18_Weights, resnet50, ResNet50_Weights
 
-REALS = "/hpc/group/youlab/sa603/data/multiplexed_eval/reals"
+REALS = os.environ.get("REALS_DIR", "/hpc/group/youlab/sa603/data/clean/multiplexed_eval/reals")
 SYNTH = os.environ.get("SYNTH_DIR", "/hpc/group/youlab/sa603/data/multiplexed_eval/synth_ft")
 RESULTS = os.environ.get("RESULTS_TSV", "/hpc/group/youlab/sa603/code/Data_augmentation/downstream_multiplexed_out/results.tsv")
 LABELS = os.environ.get("LABELS", "/hpc/group/youlab/ks723/storage/Exp_images/Multiplexed_patterning/labels_aTc_IPTG.json")
@@ -76,6 +76,9 @@ for (row, col, rep), fp in real_by.items():
         rng = random.Random((row * 131 + col * 17 + rep * 7 + SEED) & 0xffffffff)
         for _ in range(N_PER):
             train_items.append(item(rot_flip(img, rng.uniform(0, 360), rng.random() < 0.5), row, col))
+    elif MODE == "real_dup":                    # matched-count control: exact copies (per-epoch hflip only)
+        for _ in range(N_PER):
+            train_items.append(item(img, row, col))
     elif MODE == "augmenter":
         for s in sorted(glob.glob(f"{SYNTH}/R{row}C{col}_src{rep}_s*.png"))[:N_PER]:
             train_items.append(item(load_rgb(s), row, col))

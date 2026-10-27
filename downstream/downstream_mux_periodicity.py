@@ -59,6 +59,9 @@ for (row, col, rep), fp in real_by.items():
         rng = random.Random((row * 131 + col * 17 + rep * 7 + SEED) & 0xffffffff)
         for _ in range(N_PER):
             train_items.append((rot_flip(img, rng.uniform(0, 360), rng.random() < 0.5), y))
+    elif MODE == "real_dup":                                  # matched-count control: exact copies (per-epoch hflip only)
+        for _ in range(N_PER):
+            train_items.append((img, y))
     elif MODE == "augmenter":                                 # each synth carries its OWN recomputed periodicity
         for s in sorted(glob.glob(f"{SYNTH}/R{row}C{col}_src{rep}_s*.png"))[:N_PER]:
             sy = labels.get(os.path.basename(s))

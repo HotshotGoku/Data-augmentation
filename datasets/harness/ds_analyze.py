@@ -15,7 +15,7 @@ def paired(a, b):
     return m, m / (sd / sqrt(len(d))), sum(1 for x in d if x > 0), len(s)
 rot = [k for k in by if k[1] == "rotation"]
 print("=== paired vs rotation (Δ>0 = beats rotation) ===")
-for a in [k for k in by if k[1] in ("augmenter", "real")]:
+for a in [k for k in by if k[1] in ("augmenter", "real", "real_dup")]:
     for r in rot:
         res = paired(a, r)
         if res: print(f"  {a[0]}/{a[1]:10} - rotation: Δ={res[0]:+.4f}  t={res[1]:+.2f}  ({res[2]}/{res[3]} seeds won)")
