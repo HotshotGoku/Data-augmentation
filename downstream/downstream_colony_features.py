@@ -49,8 +49,12 @@ for row in csv.DictReader(open(FEATURES_CSV)):
     labels[row["name"]] = _vec(row)
 print(f"[labels] {len(labels)} images labeled with {FEATS}", flush=True)
 
+GRAY = os.environ.get("GRAY", "") not in ("", "0")  # grayscale all inputs (removes SD1.5 color-tint confound)
 def load_rgb(fp):
-    return cv2.cvtColor(cv2.imread(fp, cv2.IMREAD_COLOR), cv2.COLOR_BGR2RGB)
+    img = cv2.cvtColor(cv2.imread(fp, cv2.IMREAD_COLOR), cv2.COLOR_BGR2RGB)
+    if GRAY:
+        img = cv2.cvtColor(cv2.cvtColor(img, cv2.COLOR_RGB2GRAY), cv2.COLOR_GRAY2RGB)
+    return img
 def rot_flip(img, ang, flip):
     h, w = img.shape[:2]
     M = cv2.getRotationMatrix2D((w / 2, h / 2), ang, 1.0)

@@ -38,7 +38,7 @@ FCLEAN=$ODIR/features_branching_clean.csv            # reals + clean synth (real
 FDROPOUT=$ODIR/features_branching_clean_dropout.csv
 FSTRATSM=$ODIR/features_branching_clean_strat_sm.csv
 
-RESULTS=$ODIR/results_p5.tsv
+RESULTS=$ODIR/results_p5${TAG_SUFFIX:-}.tsv   # TAG_SUFFIX=_gray for the grayscale-input re-run
 mkdir -p "$ODIR"
 
 done_already () { [ -f "$RESULTS" ] && awk -F'\t' -v t="$1" -v n="$2" -v s="$3" '$1==t&&$2==n&&$3==s{f=1} END{exit !f}' "$RESULTS"; }
@@ -46,7 +46,7 @@ run () { # tag mode synth csv nt seed
   if done_already "$1" "$5" "$6"; then echo "skip $1 N=$5 seed=$6 (done)"; return; fi
   echo "=== $1 N=$5 seed=$6 $(date +%H:%M:%S) ==="
   MODE="$2" MODE_TAG="$1" SYNTH_DIR="$3" FEATURES_CSV="$4" N_TRAIN="$5" SEED="$6" \
-    BACKBONE=resnet50 EPOCHS=50 N_PER=8 NW=8 RESULTS_TSV="$RESULTS" \
+    BACKBONE=resnet50 EPOCHS=50 N_PER=8 NW=8 GRAY="${GRAY:-0}" RESULTS_TSV="$RESULTS" \
     python downstream/downstream_colony_features.py || echo "  FAILED $1 N=$5 seed=$6"
 }
 
@@ -61,4 +61,4 @@ for SEED in $(seq 0 14); do
   done
   run real_ceiling real "$CLEAN" "$FCLEAN" all "$SEED"   # upper-bound reference (all train conds)
 done
-echo "=== DONE $(date) ==="; column -t -s$'\t' "$RESULTS" 2>/dev/null | head -20
+echo "=== DONE $(date) ==="; column -t -s$'\t' "$RESULTS" 2>/dev/null | head -20 || true
