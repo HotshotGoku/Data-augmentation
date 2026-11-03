@@ -27,11 +27,17 @@ branchy, round_ = rows[2], rows[-3]   # low shape_factor = branchy, high = round
 def skel(fp):
     g = cv2.imread(fp, cv2.IMREAD_GRAYSCALE)
     if not HAVE_SK: return None, None, None
+    from skimage.morphology import remove_small_objects
+    from skimage.measure import label as sklabel, regionprops
     sk = skeletonize(g > 35)
     kk = np.array([[1, 1, 1], [1, 0, 1], [1, 1, 1]], np.float32)
-    nb = cv2.filter2D(sk.astype(np.float32), -1, kk)
-    tips = np.argwhere(sk & (nb == 1)); junc = np.argwhere(sk & (nb >= 3))
-    return sk, tips, junc
+    nb0 = cv2.filter2D(sk.astype(np.float32), -1, kk) * sk
+    kept = remove_small_objects(sklabel(sk & (nb0 < 3)), min_size=6) > 0   # prune <6px spurs
+    sk = skeletonize(kept | (sk & (nb0 >= 3)))
+    nb = cv2.filter2D(sk.astype(np.float32), -1, kk) * sk
+    tips = np.array([r.centroid for r in regionprops(sklabel(nb == 1))]) if (nb == 1).any() else np.empty((0, 2))
+    junc = np.array([r.centroid for r in regionprops(sklabel(nb >= 3))]) if (nb >= 3).any() else np.empty((0, 2))
+    return sk, tips, junc   # one centroid per tip/junction CLUSTER
 
 fig, ax = plt.subplots(1, 4, figsize=(14, 4.2))
 ax[0].imshow(load(find_branch(round_["name"]))); ax[0].set_title("ROUND colony\nshape_factor is HIGH", fontsize=10)
@@ -40,8 +46,8 @@ bfp = find_branch(branchy["name"]); ax[2].imshow(load(bfp))
 sk, tips, junc = skel(bfp)
 if sk is not None:
     ys, xs = np.where(sk); ax[2].scatter(xs, ys, s=0.4, c="yellow", alpha=0.45)
-    if len(tips): ax[2].scatter(tips[:, 1], tips[:, 0], s=20, c="red", edgecolors="k", linewidths=0.3, label=f"tips = {branchy['n_tips']}")
-    if len(junc): ax[2].scatter(junc[:, 1], junc[:, 0], s=20, c="deepskyblue", edgecolors="k", linewidths=0.3, label=f"junctions = {branchy['n_branch_points']}")
+    if len(tips): ax[2].scatter(tips[:, 1], tips[:, 0], s=28, c="red", edgecolors="k", linewidths=0.3, label=f"tips = {len(tips)}")
+    if len(junc): ax[2].scatter(junc[:, 1], junc[:, 0], s=28, c="deepskyblue", edgecolors="k", linewidths=0.3, label=f"junctions = {len(junc)}")
     ax[2].legend(fontsize=7, loc="lower right")
 ax[2].set_title("BRANCH-ARCHITECTURE\ncount the tips & junctions", fontsize=10)
 mux = sorted(glob.glob(f"{D}/multiplexed_eval/reals/*.TIF"))
