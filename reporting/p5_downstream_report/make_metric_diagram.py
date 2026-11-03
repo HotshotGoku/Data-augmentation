@@ -9,6 +9,8 @@ try:
     HAVE_SK = True
 except Exception:
     HAVE_SK = False
+import sys; sys.path.insert(0, "downstream")
+from colony_features import load_gray, segment_colony   # use the SAME clean binary the labeler uses
 
 D = "/hpc/group/youlab/sa603/data/clean"
 CSV = "downstream/outputs/branching_downstream_out/features_branching_clean.csv"
@@ -25,11 +27,12 @@ rows.sort(key=lambda r: float(r["shape_factor"]))
 branchy, round_ = rows[2], rows[-3]   # low shape_factor = branchy, high = round (skip extremes)
 
 def skel(fp):
-    g = cv2.imread(fp, cv2.IMREAD_GRAYSCALE)
     if not HAVE_SK: return None, None, None
     from skimage.morphology import remove_small_objects
     from skimage.measure import label as sklabel, regionprops
-    sk = skeletonize(g > 35)
+    mask = segment_colony(load_gray(fp))   # largest colony only, holes filled - no noise specks
+    if mask is None: return None, None, None
+    sk = skeletonize(mask)
     kk = np.array([[1, 1, 1], [1, 0, 1], [1, 1, 1]], np.float32)
     nb0 = cv2.filter2D(sk.astype(np.float32), -1, kk) * sk
     kept = remove_small_objects(sklabel(sk & (nb0 < 3)), min_size=6) > 0   # prune <6px spurs
