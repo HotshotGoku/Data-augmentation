@@ -87,12 +87,20 @@ def branch_architecture(binary):
     colony has many tips/junctions; a round one has ~none. Rotation can't relabel these -> good
     axis for a generative augmenter to beat rotation on. Density normalizes by skeleton length."""
     skel = morphology.skeletonize(binary)
+    if float(skel.sum()) < 5:
+        return dict(n_tips=0, n_branch_points=0, branch_length=0.0, branch_density=0.0)
+    K = np.array([[1, 1, 1], [1, 0, 1], [1, 1, 1]])
+    # prune frayed spurs: cut at junction pixels, drop skeleton fragments < 6 px, re-skeletonize.
+    nb0 = convolve(skel.astype(np.uint8), K, mode="constant") * skel
+    kept = morphology.remove_small_objects(measure.label(skel & (nb0 < 3)), min_size=6) > 0
+    skel = morphology.skeletonize(kept | (skel & (nb0 >= 3)))
     length = float(skel.sum())
     if length < 5:
         return dict(n_tips=0, n_branch_points=0, branch_length=0.0, branch_density=0.0)
-    nb = convolve(skel.astype(np.uint8), np.array([[1, 1, 1], [1, 0, 1], [1, 1, 1]]), mode="constant") * skel
-    n_tips = int((nb == 1).sum())
-    n_branch = int((nb >= 3).sum())
+    nb = convolve(skel.astype(np.uint8), K, mode="constant") * skel
+    # count each endpoint/junction CLUSTER once (adjacent >=3-neighbor pixels = one junction, not N).
+    n_tips = int(measure.label(nb == 1).max())
+    n_branch = int(measure.label(nb >= 3).max())
     return dict(n_tips=n_tips, n_branch_points=n_branch, branch_length=length,
                 branch_density=float(n_branch / length))
 
