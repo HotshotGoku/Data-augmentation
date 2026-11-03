@@ -45,14 +45,23 @@ def skel(fp):
 fig, ax = plt.subplots(1, 4, figsize=(14, 4.2))
 ax[0].imshow(load(find_branch(round_["name"]))); ax[0].set_title("ROUND colony\nshape_factor is HIGH", fontsize=10)
 ax[1].imshow(load(find_branch(branchy["name"]))); ax[1].set_title("BRANCHY colony\nshape_factor is LOW", fontsize=10)
-bfp = find_branch(branchy["name"]); ax[2].imshow(load(bfp))
-sk, tips, junc = skel(bfp)
-if sk is not None:
-    ys, xs = np.where(sk); ax[2].scatter(xs, ys, s=0.4, c="yellow", alpha=0.45)
-    if len(tips): ax[2].scatter(tips[:, 1], tips[:, 0], s=28, c="red", edgecolors="k", linewidths=0.3, label=f"tips = {len(tips)}")
-    if len(junc): ax[2].scatter(junc[:, 1], junc[:, 0], s=28, c="deepskyblue", edgecolors="k", linewidths=0.3, label=f"junctions = {len(junc)}")
-    ax[2].legend(fontsize=7, loc="lower right")
-ax[2].set_title("BRANCH-ARCHITECTURE\ncount the tips & junctions", fontsize=10)
+# panel 3: CLEAN SCHEMATIC (idealized tree) - defines tip/junction unambiguously (not auto-detected)
+a2 = ax[2]; a2.set_xlim(-0.05, 1.05); a2.set_ylim(-0.1, 1.12); a2.set_aspect("equal")
+C = (0.5, 0.5)
+J = [(0.20, 0.74), (0.80, 0.74), (0.24, 0.26), (0.76, 0.26)]
+T = [(0.05, 0.95), (0.34, 0.99), (0.66, 0.99), (0.95, 0.95),
+     (0.05, 0.05), (0.34, 0.01), (0.66, 0.01), (0.95, 0.05)]
+links = [(C, J[0]), (C, J[1]), (C, J[2]), (C, J[3]),
+         (J[0], T[0]), (J[0], T[1]), (J[1], T[2]), (J[1], T[3]),
+         (J[2], T[4]), (J[2], T[5]), (J[3], T[6]), (J[3], T[7])]
+for (x0, y0), (x1, y1) in links:
+    a2.plot([x0, x1], [y0, y1], c="#999", lw=2.6, zorder=1, solid_capstyle="round")
+jp = [C] + J
+a2.scatter([p[0] for p in jp], [p[1] for p in jp], s=120, c="deepskyblue", edgecolors="k", linewidths=0.6, zorder=3)
+a2.scatter([p[0] for p in T], [p[1] for p in T], s=120, c="red", edgecolors="k", linewidths=0.6, zorder=3)
+a2.text(0.5, 0.59, "junction", fontsize=8, color="#06c", ha="center", va="bottom", zorder=4, fontweight="bold")
+a2.text(0.34, 0.90, "tip", fontsize=8, color="#c00", ha="center", va="top", zorder=4, fontweight="bold")
+a2.set_title("BRANCH-ARCHITECTURE (schematic)\nred = tips (branch ends) = 8,  blue = junctions (splits) = 5", fontsize=8.5)
 mux = sorted(glob.glob(f"{D}/multiplexed_eval/reals/*.TIF"))
 ax[3].imshow(load(mux[len(mux)//2])); ax[3].set_title("MUX pattern\naTc = red petals, IPTG = green fill", fontsize=10)
 for a in ax: a.axis("off")
