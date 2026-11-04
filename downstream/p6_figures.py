@@ -34,8 +34,8 @@ def cell(rows, arm, scar_col, scar, metric):      # arm mean+sem within a cell
 # ---------- Fig 1: headline forest (aug - rotation, per task-axis; config/scarcity annotated) ----------
 forest = [
     ("mux  aTc  (row_acc)  dropout K3",      pdelta(mdec, "K", "3", "augmenter_dropout", lambda r: float(r["row_acc"]))),
-    ("branching  branch-arch  stratsm N20",  pdelta(brg, "N_train", "20", "augmenter_stratsm", arch4)),
-    ("branching  branch-arch  dropout N20",  pdelta(brg, "N_train", "20", "augmenter_dropout", arch4)),
+    ("branching  branch-arch  stratsm N60",  pdelta(brg, "N_train", "60", "augmenter_stratsm", arch4)),
+    ("branching  branch-arch  clean N60",    pdelta(brg, "N_train", "60", "augmenter_clean", arch4)),
     ("branching  shape_factor  dropout N20", pdelta(brg, "N_train", "20", "augmenter_dropout", sf)),
     ("mux  IPTG  (col_acc)  dropout K3",     pdelta(mdec, "K", "3", "augmenter_dropout", lambda r: float(r["col_acc"]))),
     ("mux  periodicity  base K3",            pdelta(mper, "K", "3", "augmenter_base", lambda r: float(r["r2_perim_roughness"]))),
