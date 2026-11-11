@@ -1,6 +1,6 @@
 # Do AI-generated images help train better models than just rotating real ones?
 
-**Sarthak Agrawal | November 2026**
+Sarthak Agrawal | November 2026
 
 We never have enough real microscope images to train a good predictor, so the usual move is to manufacture more training data out of the few we have. The cheap, standard way is rotation - spin and flip each real image - but a rotated colony is still the same colony. The alternative we're testing is generative AI: use an image model to invent new fake colonies that look real. The question is whether the AI route actually trains a better predictor than plain rotation when real data is scarce.
 
@@ -8,11 +8,11 @@ We never have enough real microscope images to train a good predictor, so the us
 
 Across four datasets, we trained the predictor five different ways and checked which did best on held-out real images it had never seen:
 
-- **real** - just the handful of real images, no tricks.
-- **rotation** - real images plus rotated and flipped copies. This is the baseline to beat.
-- **AI** - real images plus AI-generated fakes, the thing under test.
-- **real-duplicated** - real images plus exact copies of themselves. A control: if this matches rotation, the benefit was never "more images," it's variety.
-- **all-real** - trained on all the real data, as a best-case ceiling.
+- real - just the handful of real images, no tricks.
+- rotation - real images plus rotated and flipped copies. This is the baseline to beat.
+- AI - real images plus AI-generated fakes, the thing under test.
+- real-duplicated - real images plus exact copies of themselves. A control: if this matches rotation, the benefit was never "more images," it's variety.
+- all-real - trained on all the real data, as a best-case ceiling.
 
 Every test ran 15 times on fresh random splits and was scored on real images the model never trained on, so the numbers hold up.
 
@@ -20,15 +20,15 @@ Every test ran 15 times on fresh random splits and was scored on real images the
 
 Each row below is one colony: first the real image, then that same colony rotated (that's all rotation does), then three AI-generated versions. They land close to real but not exact.
 
-**Branching colonies** (bacteria growing in tree-like patterns):
+Branching colonies (bacteria growing in tree-like patterns):
 
 ![Branching: real, rotated, and AI-generated colonies](figs/samples_branching.png)
 
-**Mux patterns** - here the colors carry the signal: red petals encode one chemical dial (aTc), green fill encodes another (IPTG), and the model has to read both back out.
+Mux patterns - here the colors carry the signal: red petals encode one chemical dial (aTc), green fill encodes another (IPTG), and the model has to read both back out.
 
 ![Mux: real, rotated, and AI-generated patterns](figs/samples_mux.png)
 
-**KL two-species mixing** and **Rattray strains**, two more colony types:
+KL two-species mixing and Rattray strains, two more colony types:
 
 ![KL: real, rotated, and AI-generated](figs/samples_kl.png)
 
@@ -42,14 +42,14 @@ A few terms in the graphs are pipeline jargon, so here's a quick visual guide:
 
 ![Visual guide to the measurement terms](figs/metrics_explainer.png)
 
-- **shape_factor** - round versus branchy. A compact blob scores high, a spread-out branchy one scores low.
-- **branch-architecture** - how intricate the branching is, from counting the tips (red) and junctions (blue) in the colony's skeleton.
-- **aTc / IPTG** - the two chemical dials the mux model reads back: aTc is the red petals, IPTG is the green fill.
-- **mixing ratio** (kl) - how much of species A versus B.
-- **strain** (rattray) - which of 62 variants.
-- **periodicity** - how wavy the pattern's outline is.
-- **R-squared** - a 0-to-1 score for predicting a number: 1 is perfect, 0 is no better than guessing the average, negative is worse.
-- **accuracy** - fraction correct, for the pick-a-category tasks.
+- shape_factor - round versus branchy. A compact blob scores high, a spread-out branchy one scores low.
+- branch-architecture - how intricate the branching is, from counting the tips (red) and junctions (blue) in the colony's skeleton.
+- aTc / IPTG - the two chemical dials the mux model reads back: aTc is the red petals, IPTG is the green fill.
+- mixing ratio (kl) - how much of species A versus B.
+- strain (rattray) - which of 62 variants.
+- periodicity - how wavy the pattern's outline is.
+- R-squared - a 0-to-1 score for predicting a number: 1 is perfect, 0 is no better than guessing the average, negative is worse.
+- accuracy - fraction correct, for the pick-a-category tasks.
 
 ---
 
