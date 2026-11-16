@@ -25,8 +25,12 @@ cd "$REPO"
 export PYTHONPATH="$REPO:$(dirname "$REPO"):$REPO/utils:${PYTHONPATH:-}"
 export WANDB_MODE=${WANDB_MODE:-offline}
 python -c "import torch,sys; sys.exit(0 if torch.cuda.is_available() else 1)" || { echo 'FATAL: no CUDA'; exit 1; }
-echo "=== ft_rattray start $(date) | tag=${FT_TAG:-?} lr=${FT_LR:-?} freeze=${FT_FREEZE:-?} epochs=${FT_EPOCHS:-?} ==="
-python reptorep_finetune_rattray.py
+# Runtime augmentation (Kinshuk 2026-11-17): rattray gets fine rotation + brightness on the 0.865-inscribed
+# _pp build (edge/strain morphology stays in-frame); WHITE fill matches the white background.
+export GEN_AUG=${GEN_AUG:-1} AUG_FILL=${AUG_FILL:-255} AUG_BRIGHTNESS=${AUG_BRIGHTNESS:-1}
+export FT_JSON=${FT_JSON:-/hpc/group/youlab/sa603/data/external_datasets/rattray_2023/train_rattray_pp.json}
+echo "=== ft_rattray start $(date) | tag=${FT_TAG:-?} lr=${FT_LR:-?} freeze=${FT_FREEZE:-?} epochs=${FT_EPOCHS:-?} GEN_AUG=$GEN_AUG json=$FT_JSON ==="
+python pipeline/reptorep_finetune_rattray.py   # script lives in pipeline/ after the 2026-10-20 reorg
 status=$?
 echo "=== ft_rattray done $(date) exit $status ==="
 exit $status

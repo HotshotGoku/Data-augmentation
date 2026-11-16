@@ -14,6 +14,21 @@ import random
 
 from torch.utils.data import Dataset
 from cldm.preprocess import preprocess_experimental_backgroundblack
+from gen_augment import augment_pair
+
+# GEN_AUG path (Kinshuk feedback 2026-11-16): preprocessing is baked to disk by the builder
+# (initialstage_mod / dish_remove), so the dataloader just LOADS + applies runtime rotate/flip/brightness.
+# Default off -> legacy behaviour (runtime backgroundblack, no geo-aug) is unchanged.
+GEN_AUG = os.environ.get("GEN_AUG", "0") == "1"
+AUG_BRIGHTNESS = os.environ.get("AUG_BRIGHTNESS", "1") == "1"   # 0 for fluorescent (mux/kl)
+AUG_FILL = (int(os.environ.get("AUG_FILL", "255")),) * 3       # rotation border: 255=white, 0=black
+
+
+def _load_rgb(path, size=256):
+    img = cv2.cvtColor(cv2.imread(path, cv2.IMREAD_COLOR), cv2.COLOR_BGR2RGB)
+    if img.shape[:2] != (size, size):
+        img = cv2.resize(img, (size, size))
+    return img
 
 
 base_folder = '/hpc/group/youlab/ks723/storage/'  # location of prompt_simtoexp.json
@@ -43,11 +58,16 @@ class MyDataset(Dataset):
         source_path = os.path.join(folder, source_filename)
         target_path = os.path.join(folder, target_filename)
 
-        source_path = os.path.join(folder, source_filename)
-        target_path = os.path.join(folder, target_filename)
-
-        source = preprocess_experimental_backgroundblack(source_path)
-        target = preprocess_experimental_backgroundblack(target_path)
+        if GEN_AUG:
+            # preprocessing already baked to disk (initialstage_mod / dish_remove) -> just load +
+            # apply runtime rotate/flip/brightness with the SAME params to source and target.
+            source = _load_rgb(source_path)
+            target = _load_rgb(target_path)
+            source, target, _ = augment_pair(source, target, np.random.default_rng(),
+                                             brightness=AUG_BRIGHTNESS, fill=AUG_FILL)
+        else:
+            source = preprocess_experimental_backgroundblack(source_path)
+            target = preprocess_experimental_backgroundblack(target_path)
 
         # Already 3 channels (RGB) - no conversion needed for experimental images
 

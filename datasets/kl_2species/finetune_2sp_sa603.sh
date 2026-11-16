@@ -34,7 +34,10 @@ echo "=== start $(date) | host $(hostname) | job ${SLURM_JOB_ID:-?} | FT_LR=${FT
 nvidia-smi --query-gpu=name,memory.total --format=csv,noheader || true
 python -c "import torch,sys; sys.exit(0 if torch.cuda.is_available() else 1)" || { echo 'FATAL: no CUDA on this node'; exit 1; }
 
-python reptorep_finetune.py
+# Runtime augmentation (Kinshuk 2026-11-17): kl is FLUORESCENT (ratio = color/intensity = label) ->
+# rotate/flip only, NO brightness; GEN_AUG also skips brightfield backgroundblack (correct for fluor).
+export GEN_AUG=${GEN_AUG:-1} AUG_FILL=${AUG_FILL:-0} AUG_BRIGHTNESS=${AUG_BRIGHTNESS:-0}
+python pipeline/reptorep_finetune.py   # script lives in pipeline/ after the 2026-10-20 reorg
 status=$?
 echo "=== done $(date) | exit $status ==="
 exit $status

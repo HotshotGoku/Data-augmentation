@@ -23,8 +23,8 @@ export HF_HOME=/hpc/group/youlab/sa603/.hf_home
 nvidia-smi --query-gpu=name,memory.total --format=csv,noheader | head -1
 
 # cldm MyDataset wants {source,target,prompt,folder} JSONL; the Flux manifest has source_path/target_path.
-SRC=/hpc/group/youlab/sa603/data/branching_256/train_branching.json
-DST=/hpc/group/youlab/sa603/data/branching_256/train_branching_cldm.jsonl
+SRC=/hpc/group/youlab/sa603/data/branching_256_pp/train_branching.json   # initialstage_mod-preprocessed build
+DST=/hpc/group/youlab/sa603/data/branching_256_pp/train_branching_cldm.jsonl
 python - "$SRC" "$DST" <<'PY'
 import json, os, sys
 src, dst = sys.argv[1], sys.argv[2]; n = 0
@@ -42,6 +42,9 @@ export FT_JSON="$DST"
 export FT_RESUME="$SIM/sim_to_exp_diffusion/controlnet_essential/control_sd15_ini.ckpt"
 export FT_LR=${FT_LR:-1e-5} FT_EPOCHS=${FT_EPOCHS:-150} FT_FREEZE=${FT_FREEZE:-none}
 export FT_SAVE_TOPK=${FT_SAVE_TOPK:-1} FT_TAG=${FT_TAG:-branching_sd15_fromseed} FT_SEED=${FT_SEED:-42}  # topk must be 1 or -1 w/o a monitor metric
-echo "=== SD1.5 branching train from seed $(date) tag=$FT_TAG epochs=$FT_EPOCHS lr=$FT_LR ==="
-python reptorep_finetune.py
+# Runtime augmentation (Kinshuk 2026-11-16): preprocessing baked by the builder -> dataloader does
+# rotate/flip/brightness with the SAME params on source+target. Brightfield branching: white fill, brightness ON.
+export GEN_AUG=${GEN_AUG:-1} AUG_FILL=${AUG_FILL:-255} AUG_BRIGHTNESS=${AUG_BRIGHTNESS:-1}
+echo "=== SD1.5 branching train from seed $(date) tag=$FT_TAG epochs=$FT_EPOCHS lr=$FT_LR GEN_AUG=$GEN_AUG ==="
+python pipeline/reptorep_finetune.py   # script lives in pipeline/ after the 2026-10-20 reorg
 echo "=== done $(date) exit=$? ==="; ls -la finetune_runs/$FT_TAG/lightning_logs/version_*/checkpoints/ 2>/dev/null | tail

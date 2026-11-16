@@ -43,8 +43,11 @@ export FT_RESUME="$SIM/sim_to_exp_diffusion/controlnet_essential/control_sd15_in
 export FT_LR=${FT_LR:-1e-5} FT_EPOCHS=${FT_EPOCHS:-40} FT_FREEZE=${FT_FREEZE:-none}
 export FT_SAVE_TOPK=1 FT_TAG=mux_sd15_dropout FT_SEED=42
 export HINT_DROPOUT=${HINT_DROPOUT:-0.2}
-echo "=== train mux dropout SD1.5 $(date) tag=$FT_TAG epochs=$FT_EPOCHS dropout=$HINT_DROPOUT ==="
-python reptorep_finetune.py
+# Runtime augmentation (Kinshuk 2026-11-17): mux is FLUORESCENT (intensity/color = label) -> rotate/flip
+# only, NO brightness; GEN_AUG also skips the brightfield backgroundblack preprocess (correct for fluor).
+export GEN_AUG=${GEN_AUG:-1} AUG_FILL=${AUG_FILL:-0} AUG_BRIGHTNESS=${AUG_BRIGHTNESS:-0}
+echo "=== train mux dropout SD1.5 $(date) tag=$FT_TAG epochs=$FT_EPOCHS dropout=$HINT_DROPOUT GEN_AUG=$GEN_AUG ==="
+python pipeline/reptorep_finetune.py   # script lives in pipeline/ after the 2026-10-20 reorg
 echo "=== train done $(date) exit=$? ==="
 CKPT=$(ls -t finetune_runs/mux_sd15_dropout/lightning_logs/version_*/checkpoints/*.ckpt 2>/dev/null | head -1)
 [ -f "$CKPT" ] || { echo "FATAL: no ckpt"; exit 1; }
