@@ -44,7 +44,11 @@ else:
 print(f"[{TAG}] {len(reals)} reals, {len(labs)} labels, {len(test)} test, pool {len(pool)}; MODE={MODE} K={K}", flush=True)
 
 NORM = transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]); RS = transforms.Resize((224, 224))
-def load(fp): return cv2.cvtColor(cv2.imread(fp, cv2.IMREAD_COLOR), cv2.COLOR_BGR2RGB)
+GRAY = E.get("GRAY", "") not in ("", "0")  # grayscale all inputs (channel-match: removes SD1.5 color-tint confound)
+def load(fp):
+    img = cv2.cvtColor(cv2.imread(fp, cv2.IMREAD_COLOR), cv2.COLOR_BGR2RGB)
+    if GRAY: img = cv2.cvtColor(cv2.cvtColor(img, cv2.COLOR_RGB2GRAY), cv2.COLOR_GRAY2RGB)
+    return img
 def rot_copy(im):
     im = np.rot90(im, random.choice([1, 2, 3])).copy()
     if random.random() < 0.5: im = im[:, ::-1].copy()
