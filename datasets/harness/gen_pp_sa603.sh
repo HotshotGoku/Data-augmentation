@@ -44,7 +44,9 @@ case "$DS" in
   pakp|nlev|selx) OUT=$D/${DS}_256_pp/synth_pp; mkdir -p "$OUT"   # quality: gen over held-out test sources
      FT_EVAL_CKPT="$CK" SOURCES="$D/${DS}_256_pp/test/sources/*.TIF" OUT="$OUT" N="$PER" python datasets/harness/ds_gen.py ;;
   swarmevo)   OUT=$D/external_datasets/swarmevo/synth_pp; mkdir -p "$OUT"  # quality: one source frame per colony
-     FT_EVAL_CKPT="$CK" SOURCES="$D/external_datasets/swarmevo/canon_pp/*/00000.png" OUT="$OUT" N="$PER" python datasets/harness/ds_gen.py ;;
+     SRCD=$(mktemp -d)   # per-colony frames share names (00000.png) -> stage unique <colony>.png so ds_gen stems don't collide
+     for d in "$D"/external_datasets/swarmevo/canon_pp/*/; do c=$(basename "$d"); [ -f "$d/00000.png" ] && ln -sf "$d/00000.png" "$SRCD/$c.png"; done
+     FT_EVAL_CKPT="$CK" SOURCES="$SRCD/*.png" OUT="$OUT" N="$PER" python datasets/harness/ds_gen.py ;;
   *) echo "unknown DS=$DS"; exit 1 ;;
 esac
 echo "=== gen_pp done $(date) count=$(ls "$OUT"/*.png 2>/dev/null | wc -l) -> $OUT ==="
