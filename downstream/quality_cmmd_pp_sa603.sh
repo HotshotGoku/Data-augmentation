@@ -22,6 +22,7 @@ export HF_HOME=/hpc/group/youlab/sa603/.hf_home
 DS=${DS:?set DS}
 case "$DS" in
   pakp|nlev|selx) GEN=$D/${DS}_256_pp/synth_pp; REAL="$D/${DS}_256_pp/test/reals" ;;
+  kl)             GEN=$D/kl_256_pp/synth_pp; REAL="$D/kl_256_pp/canon" ;;   # ratio label unrecoverable -> realism only
   swarmevo)       GEN=$D/external_datasets/swarmevo/synth_pp     # reals nested per colony -> flatten via symlinks
                   REAL=$(mktemp -d); i=0
                   for f in "$D"/external_datasets/swarmevo/canon_pp/*/*.png; do ln -sf "$f" "$REAL/f$i.png"; i=$((i+1)); done
