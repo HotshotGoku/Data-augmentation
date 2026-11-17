@@ -23,7 +23,8 @@ DATASETS = {
     "mux":      (f"{D}/multiplexed_eval/reals/*.TIF", 0, False),   # fluor: no bake, rotate/flip only
     "kl":       (f"{D}/ood_kl_2species/*.TIF", 0, False),           # fluor: no bake, rotate/flip only
 }
-OUT_DIR = os.environ.get("OUT_DIR", "/hpc/group/youlab/sa603/kinshuk_scaleout_aug")
+BOOST = os.environ.get("BOOST", "0") == "1"   # show the boosted aug (zoom-out scale + wider photometric)
+OUT_DIR = os.environ.get("OUT_DIR", "/hpc/group/youlab/sa603/kinshuk_scaleout_aug" + ("_boost" if BOOST else ""))
 N_IMG = 4        # sample images per dataset
 N_AUG = 3        # augmented variants per image
 os.makedirs(OUT_DIR, exist_ok=True)
@@ -44,14 +45,15 @@ for name, (pat, fill, bright) in DATASETS.items():
     cols = 1 + N_AUG
     canvas = Image.new("RGB", (cols * T + pad * (cols - 1), H + len(paths) * (T + pad)), (14, 15, 19))
     d = ImageDraw.Draw(canvas)
-    d.text((4, 4), f"{name}  fill={fill} brightness={bright}   [baked_pp | aug x{N_AUG}]", fill=(255, 230, 120))
+    tag = "BOOST " if BOOST else ""
+    d.text((4, 4), f"{tag}{name}  fill={fill} brightness={bright}   [baked_pp | aug x{N_AUG}]", fill=(255, 230, 120))
     rng = np.random.default_rng(0)
     for i, fp in enumerate(paths):
         img = load(fp)
         y = H + i * (T + pad)
         canvas.paste(Image.fromarray(img), (0, y))
         for j in range(N_AUG):
-            a, _, _ = augment_pair(img, img.copy(), rng, brightness=bright, fill=(fill,) * 3)
+            a, _, _ = augment_pair(img, img.copy(), rng, brightness=bright, fill=(fill,) * 3, boost=BOOST)
             canvas.paste(Image.fromarray(a), ((j + 1) * (T + pad), y))
     out = os.path.join(OUT_DIR, f"aug_{name}.png")
     canvas.save(out)

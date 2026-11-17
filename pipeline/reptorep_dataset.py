@@ -22,6 +22,7 @@ from gen_augment import augment_pair
 GEN_AUG = os.environ.get("GEN_AUG", "0") == "1"
 AUG_BRIGHTNESS = os.environ.get("AUG_BRIGHTNESS", "1") == "1"   # 0 for fluorescent (mux/kl)
 AUG_FILL = (int(os.environ.get("AUG_FILL", "255")),) * 3       # rotation border: 255=white, 0=black
+AUG_BOOST = os.environ.get("AUG_BOOST", "0") == "1"            # stronger aug: +zoom-out scale, wider photometric
 
 
 def _load_rgb(path, size=256):
@@ -64,7 +65,7 @@ class MyDataset(Dataset):
             source = _load_rgb(source_path)
             target = _load_rgb(target_path)
             source, target, _ = augment_pair(source, target, np.random.default_rng(),
-                                             brightness=AUG_BRIGHTNESS, fill=AUG_FILL)
+                                             brightness=AUG_BRIGHTNESS, fill=AUG_FILL, boost=AUG_BOOST)
         else:
             source = preprocess_experimental_backgroundblack(source_path)
             target = preprocess_experimental_backgroundblack(target_path)

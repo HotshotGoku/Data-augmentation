@@ -20,6 +20,7 @@ from gen_augment import augment_pair
 GEN_AUG = os.environ.get("GEN_AUG", "0") == "1"
 AUG_BRIGHTNESS = os.environ.get("AUG_BRIGHTNESS", "1") == "1"
 AUG_FILL = (int(os.environ.get("AUG_FILL", "255")),) * 3   # rattray = white background
+AUG_BOOST = os.environ.get("AUG_BOOST", "0") == "1"        # stronger aug: +zoom-out scale (edge-safe), wider photometric
 AUG = os.environ.get("RATTRAY_AUG", "1") == "1"            # legacy dihedral gate (non-GEN_AUG path)
 
 
@@ -48,7 +49,7 @@ class MyDataset(Dataset):
         if GEN_AUG:
             # inscribe already baked to disk -> fine rotate/flip/brightness, white fill.
             src, tgt, _ = augment_pair(src, tgt, np.random.default_rng(),
-                                       brightness=AUG_BRIGHTNESS, fill=AUG_FILL)
+                                       brightness=AUG_BRIGHTNESS, fill=AUG_FILL, boost=AUG_BOOST)
         elif AUG:
             src, tgt = _dihedral(src), _dihedral(tgt)
         src = src.astype(np.float32) / 255.0             # hint in [0,1]
